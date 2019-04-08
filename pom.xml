@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <groupId>com.github.rainmanhhh</groupId>
+    <artifactId>spring-boot-starter-vertx</artifactId>
+    <version>0.0.2</version>
+
     <properties>
-        <springBootVersion>2.0.5.RELEASE</springBootVersion>
-        <vertxVersion>3.5.3</vertxVersion>
+        <springBootVersion>2.1.4.RELEASE</springBootVersion>
+        <vertxVersion>3.7.0</vertxVersion>
     </properties>
 
     <build>
@@ -28,15 +32,11 @@
         </plugins>
     </build>
 
-    <groupId>com.github.rainmanhhh</groupId>
-    <artifactId>spring-boot-starter-vertx</artifactId>
-    <version>0.0.1</version>
-
     <dependencies>
         <dependency>
             <groupId>com.github.rainmanhhh</groupId>
             <artifactId>spring-boot-starter-util</artifactId>
-            <version>${version}</version>
+            <version>0.0.1</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -69,4 +69,11 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+    <repositories>
+        <repository>
+            <id>jitpack</id>
+            <name>jitpack</name>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
 </project>
