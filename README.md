@@ -1,10 +1,7 @@
 # spring-boot-starter-vertx
 
 ## auto config beans:
-Vertx and options
+Vertx, VertxOptions, DeploymentOptions
 
 ## auto config beans conditional(by properties):
-HttpServer and options
-
-## customize
-set vertx properties in application.yml
+HttpServer, HttpServerOptions, NetServer, NetServerOptions

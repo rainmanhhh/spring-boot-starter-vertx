@@ -1,4 +1,4 @@
-package ez.spring.vertx.httpServer;
+package ez.spring.vertx.netServer;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -9,12 +9,13 @@ import org.springframework.context.annotation.Import;
 import ez.spring.vertx.VertxConfiguration;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
-import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.net.NetServer;
+import io.vertx.core.net.NetServerOptions;
 
 @Import(VertxConfiguration.class)
-@ConfigurationProperties("vertx.http-server")
+@ConfigurationProperties("vertx.net-server")
 @Configuration
-public class HttpServerConfiguration {
+public class NetServerConfiguration {
     private boolean enabled = false;
 
     public boolean isEnabled() {
@@ -25,19 +26,16 @@ public class HttpServerConfiguration {
         this.enabled = enabled;
     }
 
-    @ConditionalOnMissingBean(HttpServer.class)
+    @ConfigurationProperties("vertx.net-server.options")
+    @ConditionalOnMissingBean(NetServerOptions.class)
     @Bean
-    public HttpServer httpServer(
-            Vertx vertx,
-            HttpServerOptions options
-    ) {
-        return isEnabled() ? vertx.createHttpServer(options) : null;
+    public NetServerOptions netServerOptions() {
+        return new NetServerOptions();
     }
 
-    @ConfigurationProperties("vertx.http-server.options")
-    @ConditionalOnMissingBean(HttpServerOptions.class)
+    @ConditionalOnMissingBean(HttpServer.class)
     @Bean
-    public HttpServerOptions httpServerOptions() {
-        return new HttpServerOptions();
+    public NetServer netServer(Vertx vertx, NetServerOptions options) {
+        return isEnabled() ? vertx.createNetServer(options) : null;
     }
 }
