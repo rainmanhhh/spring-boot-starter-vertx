@@ -1,30 +1,29 @@
 package ez.spring.vertx;
 
-import io.vertx.core.VertxOptions;
+import java.util.Collections;
+import java.util.List;
 
+import io.vertx.core.VertxOptions;
+import lombok.Data;
+
+@Data
 public class VertxProps extends VertxOptions {
     /**
-     * unit: seconds
+     * timeout of joining to the cluster.
+     * unit: {@link java.util.concurrent.TimeUnit#MILLISECONDS}.
+     * less than 0 means wait forever
      */
-    private long clusterJoinTimeout = 30;
+    private long clusterJoinTimeout = 30_000L;
     /**
-     * unit: seconds
+     * timeout of deploy all configured verticles(in beans & config files).
+     * unit: {@link java.util.concurrent.TimeUnit#MILLISECONDS}.
+     * less than 0 means wait forever
      */
-    private long mainVerticleDeployTimeout = 120;
-
-    public long getClusterJoinTimeout() {
-        return clusterJoinTimeout;
-    }
-
-    public void setClusterJoinTimeout(long clusterJoinTimeout) {
-        this.clusterJoinTimeout = clusterJoinTimeout;
-    }
-
-    public long getMainVerticleDeployTimeout() {
-        return mainVerticleDeployTimeout;
-    }
-
-    public void setMainVerticleDeployTimeout(long mainVerticleDeployTimeout) {
-        this.mainVerticleDeployTimeout = mainVerticleDeployTimeout;
-    }
+    private long deployTimeout = 180_000L;
+    /**
+     * verticles to deploy at vertx start(after main verticle deployed).
+     *
+     * @see VerticleDeploy
+     */
+    private List<VerticleDeploy> verticles = Collections.emptyList();
 }

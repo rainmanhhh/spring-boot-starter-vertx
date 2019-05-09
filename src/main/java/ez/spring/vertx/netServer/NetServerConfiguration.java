@@ -5,6 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Lazy;
 
 import ez.spring.vertx.VertxConfiguration;
 import io.vertx.core.Vertx;
@@ -16,16 +17,7 @@ import io.vertx.core.net.NetServerOptions;
 @ConfigurationProperties("vertx.net-server")
 @Configuration
 public class NetServerConfiguration {
-    private boolean enabled = false;
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
+    @Lazy
     @ConfigurationProperties("vertx.net-server.options")
     @ConditionalOnMissingBean(NetServerOptions.class)
     @Bean
@@ -33,9 +25,10 @@ public class NetServerConfiguration {
         return new NetServerOptions();
     }
 
+    @Lazy
     @ConditionalOnMissingBean(HttpServer.class)
     @Bean
     public NetServer netServer(Vertx vertx, NetServerOptions options) {
-        return isEnabled() ? vertx.createNetServer(options) : null;
+        return vertx.createNetServer(options);
     }
 }

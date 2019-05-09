@@ -5,6 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Lazy;
 
 import ez.spring.vertx.VertxConfiguration;
 import io.vertx.core.Vertx;
@@ -15,29 +16,21 @@ import io.vertx.core.http.HttpServerOptions;
 @ConfigurationProperties("vertx.http-server")
 @Configuration
 public class HttpServerConfiguration {
-    private boolean enabled = false;
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
+    @Lazy
     @ConditionalOnMissingBean(HttpServer.class)
     @Bean
     public HttpServer httpServer(
             Vertx vertx,
             HttpServerOptions options
     ) {
-        return isEnabled() ? vertx.createHttpServer(options) : null;
+        return vertx.createHttpServer(options);
     }
 
+    @Lazy
     @ConfigurationProperties("vertx.http-server.options")
     @ConditionalOnMissingBean(HttpServerOptions.class)
     @Bean
     public HttpServerOptions httpServerOptions() {
-        return new HttpServerOptions();
+        return new HttpServerOptions().setPort(8999);
     }
 }
