@@ -9,16 +9,14 @@ import org.springframework.context.annotation.Lazy;
 
 import ez.spring.vertx.VertxConfiguration;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpServer;
 import io.vertx.core.net.NetServer;
 import io.vertx.core.net.NetServerOptions;
 
 @Import(VertxConfiguration.class)
-@ConfigurationProperties("vertx.net-server")
 @Configuration
 public class NetServerConfiguration {
     @Lazy
-    @ConfigurationProperties("vertx.net-server.options")
+    @ConfigurationProperties(VertxConfiguration.PREFIX + ".net-server")
     @ConditionalOnMissingBean(NetServerOptions.class)
     @Bean
     public NetServerOptions netServerOptions() {
@@ -26,7 +24,7 @@ public class NetServerConfiguration {
     }
 
     @Lazy
-    @ConditionalOnMissingBean(HttpServer.class)
+    @ConditionalOnMissingBean(NetServer.class)
     @Bean
     public NetServer netServer(Vertx vertx, NetServerOptions options) {
         return vertx.createNetServer(options);

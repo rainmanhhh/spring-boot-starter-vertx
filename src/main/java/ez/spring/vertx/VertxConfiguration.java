@@ -23,6 +23,9 @@ import io.vertx.core.spi.cluster.ClusterManager;
 
 @Configuration
 public class VertxConfiguration {
+    public static final String PREFIX = "vertx";
+    public static final String MAIN_VERTICLE = PREFIX + ".main-verticle";
+
     static {
         final String KEY = "vertx.logger-delegate-factory-class-name";
         if (System.getProperty(KEY) == null) {
@@ -30,7 +33,6 @@ public class VertxConfiguration {
         }
     }
 
-    public static final String MAIN_VERTICLE = "vertx.main-verticle";
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Bean
@@ -70,6 +72,7 @@ public class VertxConfiguration {
         return null;
     }
 
+    @Nullable
     @ConditionalOnMissingBean(VertxMetricsFactory.class)
     @Bean
     public VertxMetricsFactory metricsFactory() {
@@ -92,15 +95,13 @@ public class VertxConfiguration {
     }
 
     @Bean
-    public ConfiguredVerticleDeployer vertxCommandLineRunner(
+    public AutoDeployer autoDeployer(
             ApplicationContext applicationContext,
             Vertx vertx,
             VertxProps vertxProps,
             @Qualifier(MAIN_VERTICLE) DeploymentOptionsEx mainVerticleDeploy,
             @Autowired(required = false) @MainVerticle Verticle mainVerticle
     ) {
-        return new ConfiguredVerticleDeployer(
-                applicationContext, vertx, vertxProps, mainVerticle, mainVerticleDeploy
-        );
+        return new AutoDeployer(applicationContext, vertx, vertxProps, mainVerticle, mainVerticleDeploy);
     }
 }

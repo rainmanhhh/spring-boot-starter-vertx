@@ -23,40 +23,39 @@ import io.vertx.core.logging.LoggerFactory;
  * auto deploy mainVerticle(bean with qualifier annotation {@link MainVerticle})
  * and verticles defined in application config file(prefix=vertx.verticles)
  */
-public class ConfiguredVerticleDeployer implements CommandLineRunner {
+public class AutoDeployer implements CommandLineRunner {
     private final ApplicationContext applicationContext;
     private final Vertx vertx;
     private final VertxProps vertxProps;
     private final Verticle mainVerticle;
-    private final DeploymentOptionsEx mainVerticleDeployOptions;
+    private final DeploymentOptionsEx mainVerticleDeploy;
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    public ConfiguredVerticleDeployer(
+    public AutoDeployer(
             ApplicationContext applicationContext,
             Vertx vertx,
             VertxProps vertxProps,
             @Nullable Verticle mainVerticle,
-            DeploymentOptionsEx mainVerticleDeployOptions
+            DeploymentOptionsEx mainVerticleDeploy
     ) {
         this.applicationContext = applicationContext;
         this.vertx = vertx;
         this.vertxProps = vertxProps;
         this.mainVerticle = mainVerticle;
-        this.mainVerticleDeployOptions = mainVerticleDeployOptions;
+        this.mainVerticleDeploy = mainVerticleDeploy;
     }
 
     private CompletableFuture<String> deployMainVerticle() {
-        DeploymentOptionsEx deploymentOptionsEx = mainVerticleDeployOptions == null ?
-                new DeploymentOptionsEx() : mainVerticleDeployOptions;
-        if (!deploymentOptionsEx.isEnabled()) {
+        if (!mainVerticleDeploy.isEnabled()) {
             logger.info("vertx.main-verticle.enabled is false. skip deploying MainVerticle");
             return CompletableFuture.completedFuture(null);
         } else {
             if (mainVerticle == null) {
                 logger.info("MainVerticle bean is null. skip deploying MainVerticle");
+                mainVerticleDeploy.setEnabled(false);
                 return CompletableFuture.completedFuture(null);
             } else {
-                return deploymentOptionsEx.deploy(vertx, mainVerticle);
+                return mainVerticleDeploy.deploy(vertx, mainVerticle);
             }
         }
     }
@@ -114,23 +113,29 @@ public class ConfiguredVerticleDeployer implements CommandLineRunner {
             }
             return future;
         } catch (Exception e) {
-            throw new RuntimeException("deploy verticles failed", e);
+            return FutureEx.failedFuture(e);
         }
     }
 
     @Override
     public void run(String... args) {
-        final CompletableFuture<String> completableFuture =
-                deployMainVerticle().thenComposeAsync(o -> deployVerticles());
+        final CompletableFuture<?> future = FutureEx.succeededFuture(null)
+                .thenCompose(o -> deployMainVerticle())
+                .thenCompose(o -> deployVerticles())
+                .thenCompose(lastDeploymentId -> {
+                    if (lastDeploymentId == null && !mainVerticleDeploy.isEnabled()) {
+                        return FutureEx.failedFuture("no enabled mainVerticle, no configured verticles");
+                    } else return FutureEx.succeededFuture(lastDeploymentId);
+                });
         long deployTimeout = vertxProps.getDeployTimeout();
         if (deployTimeout > 0) {
             vertx.setTimer(
                     deployTimeout,
-                    event -> completableFuture.completeExceptionally(
+                    event -> future.completeExceptionally(
                             new TimeoutException("deploy timeout")
                     )
             );
         }
-        completableFuture.join();
+        future.join();
     }
 }

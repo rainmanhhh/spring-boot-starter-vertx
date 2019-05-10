@@ -13,7 +13,9 @@ import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Verticle;
 import io.vertx.core.Vertx;
 import lombok.Data;
+import lombok.experimental.Accessors;
 
+@Accessors(chain = true)
 @Data
 public class DeploymentOptionsEx extends DeploymentOptions {
     public static final Logger logger = LoggerFactory.getLogger(DeploymentOptionsEx.class);
@@ -25,6 +27,17 @@ public class DeploymentOptionsEx extends DeploymentOptions {
      * less than 0 means wait forever
      */
     private long timeout = 30_000L;
+
+    public DeploymentOptionsEx() {
+        super();
+    }
+
+    public DeploymentOptionsEx(DeploymentOptionsEx other) {
+        super(other);
+        enabled = other.enabled;
+        order = other.order;
+        timeout = other.timeout;
+    }
 
     private CompletableFuture<String> doDeploy(Vertx vertx, Object verticle, boolean asyncTimeout) {
         logger.info("deploy verticle start: [{}]", Objects.requireNonNull(verticle));

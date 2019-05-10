@@ -13,7 +13,6 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 
 @Import(VertxConfiguration.class)
-@ConfigurationProperties("vertx.http-server")
 @Configuration
 public class HttpServerConfiguration {
     @Lazy
@@ -27,7 +26,7 @@ public class HttpServerConfiguration {
     }
 
     @Lazy
-    @ConfigurationProperties("vertx.http-server.options")
+    @ConfigurationProperties(VertxConfiguration.PREFIX + ".http-server")
     @ConditionalOnMissingBean(HttpServerOptions.class)
     @Bean
     public HttpServerOptions httpServerOptions() {
