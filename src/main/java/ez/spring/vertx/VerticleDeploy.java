@@ -1,9 +1,7 @@
 package ez.spring.vertx;
 
 import lombok.Data;
-import lombok.experimental.Accessors;
 
-@Accessors(chain = true)
 @Data
 public class VerticleDeploy extends DeploymentOptionsEx {
     /**

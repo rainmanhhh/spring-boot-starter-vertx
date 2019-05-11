@@ -1,7 +1,3 @@
 # spring-boot-starter-vertx
 
-## auto config beans:
-Vertx, VertxOptions, DeploymentOptions
-
-## auto config beans conditional(by properties):
-HttpServer, HttpServerOptions, NetServer, NetServerOptions
+define vertx-core beans such as Vertx, VertxProps(extends from VertxOptions), HttpServer(lazy), NetServer(lazy)

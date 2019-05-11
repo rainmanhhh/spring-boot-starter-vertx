@@ -13,9 +13,7 @@ import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Verticle;
 import io.vertx.core.Vertx;
 import lombok.Data;
-import lombok.experimental.Accessors;
 
-@Accessors(chain = true)
 @Data
 public class DeploymentOptionsEx extends DeploymentOptions {
     public static final Logger logger = LoggerFactory.getLogger(DeploymentOptionsEx.class);
@@ -24,7 +22,7 @@ public class DeploymentOptionsEx extends DeploymentOptions {
     /**
      * timeout of deploying verticle.
      * unit: {@link java.util.concurrent.TimeUnit#MILLISECONDS}.
-     * less than 0 means wait forever
+     * equals or less than 0 means wait forever
      */
     private long timeout = 30_000L;
 
@@ -47,25 +45,17 @@ public class DeploymentOptionsEx extends DeploymentOptions {
         } else if (verticle instanceof Verticle) {
             vertx.deployVerticle((Verticle) verticle, this, future);
         } else {
-            future.completeExceptionally(
-                    new IllegalArgumentException("verticle class should be String or Verticle, but actually: " + verticle.getClass())
-            );
-            return future;
+            String message = "verticle class should be String or Verticle, but actually: " + verticle.getClass().getCanonicalName();
+            if (future.fail(message)) return future;
+            else return FutureEx.failedFuture(message);
         }
-        CompletableFuture<String> completableFuture = future.thenApply(deploymentId -> {
+        long timeout = asyncTimeout ? getTimeout() : 0;
+        return FutureEx.setTimeout(
+                future, vertx, timeout, "deploy"
+        ).thenApply(deploymentId -> {
             logger.info("deploy verticle success: [{}], id={}", verticle, deploymentId);
             return deploymentId;
         });
-        long timeout = getTimeout();
-        if (asyncTimeout && timeout > 0) {
-            vertx.setTimer(
-                    timeout,
-                    event -> completableFuture.completeExceptionally(
-                            new TimeoutException("deploy timeout")
-                    )
-            );
-        }
-        return future;
     }
 
     private CompletableFuture<String> doDeployAsync(Vertx vertx, Object verticle) {

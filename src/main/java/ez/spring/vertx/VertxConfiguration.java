@@ -27,18 +27,15 @@ public class VertxConfiguration {
     public static final String MAIN_VERTICLE = PREFIX + ".main-verticle";
 
     static {
-        final String KEY = "vertx.logger-delegate-factory-class-name";
-        if (System.getProperty(KEY) == null) {
-            System.setProperty(KEY, SLF4JLogDelegateFactory.class.getCanonicalName());
-        }
+        final String LOGGER_DELEGATE_KEY = "vertx.logger-delegate-factory-class-name";
+        if (System.getProperty(LOGGER_DELEGATE_KEY) == null)
+            System.setProperty(LOGGER_DELEGATE_KEY, SLF4JLogDelegateFactory.class.getCanonicalName());
     }
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Bean
-    public Vertx vertx(
-            VertxProps vertxProps
-    ) throws ExecutionException, InterruptedException, TimeoutException {
+    public Vertx vertx(VertxProps vertxProps) throws ExecutionException, InterruptedException, TimeoutException {
         final Vertx vertx;
         if (vertxProps.getEventBusOptions().isClustered()) {
             FutureEx<Vertx> futureEx = FutureEx.future();
@@ -52,7 +49,7 @@ public class VertxConfiguration {
         return vertx;
     }
 
-    @ConfigurationProperties("vertx")
+    @ConfigurationProperties(PREFIX)
     @ConditionalOnMissingBean(VertxProps.class)
     @Bean
     public VertxProps vertxProps(

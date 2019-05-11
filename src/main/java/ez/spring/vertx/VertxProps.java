@@ -5,9 +5,7 @@ import java.util.List;
 
 import io.vertx.core.VertxOptions;
 import lombok.Data;
-import lombok.experimental.Accessors;
 
-@Accessors(chain = true)
 @Data
 public class VertxProps extends VertxOptions {
     /**

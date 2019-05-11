@@ -12,7 +12,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeoutException;
 
 import io.vertx.core.Verticle;
 import io.vertx.core.Vertx;
@@ -48,12 +47,12 @@ public class AutoDeployer implements CommandLineRunner {
     private CompletableFuture<String> deployMainVerticle() {
         if (!mainVerticleDeploy.isEnabled()) {
             logger.info("vertx.main-verticle.enabled is false. skip deploying MainVerticle");
-            return CompletableFuture.completedFuture(null);
+            return FutureEx.succeededFuture();
         } else {
             if (mainVerticle == null) {
                 logger.info("MainVerticle bean is null. skip deploying MainVerticle");
                 mainVerticleDeploy.setEnabled(false);
-                return CompletableFuture.completedFuture(null);
+                return FutureEx.succeededFuture();
             } else {
                 return mainVerticleDeploy.deploy(vertx, mainVerticle);
             }
@@ -107,8 +106,8 @@ public class AutoDeployer implements CommandLineRunner {
                             }
                         }
                     }
-                    final Verticle v = verticle;
-                    future = future.thenComposeAsync(o -> verticleDeploy.deploy(vertx, v));
+                    final Verticle finalVerticle = verticle;
+                    future = future.thenCompose(o -> verticleDeploy.deploy(vertx, finalVerticle));
                 }
             }
             return future;
@@ -119,7 +118,7 @@ public class AutoDeployer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        final CompletableFuture<?> future = FutureEx.succeededFuture(null)
+        CompletableFuture<?> future = FutureEx.succeededFuture()
                 .thenCompose(o -> deployMainVerticle())
                 .thenCompose(o -> deployVerticles())
                 .thenCompose(lastDeploymentId -> {
@@ -127,15 +126,6 @@ public class AutoDeployer implements CommandLineRunner {
                         return FutureEx.failedFuture("no enabled mainVerticle, no configured verticles");
                     } else return FutureEx.succeededFuture(lastDeploymentId);
                 });
-        long deployTimeout = vertxProps.getDeployTimeout();
-        if (deployTimeout > 0) {
-            vertx.setTimer(
-                    deployTimeout,
-                    event -> future.completeExceptionally(
-                            new TimeoutException("deploy timeout")
-                    )
-            );
-        }
-        future.join();
+        FutureEx.setTimeout(future, vertx, vertxProps.getDeployTimeout(), "deploy").join();
     }
 }
