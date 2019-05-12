@@ -1,4 +1,4 @@
-package ez.spring.vertx;
+package ez.spring.vertx.deploy;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -6,6 +6,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import ez.spring.vertx.EzUtil;
+import ez.spring.vertx.FutureEx;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Verticle;
 import io.vertx.core.Vertx;
@@ -36,7 +38,8 @@ public class DeploymentOptionsEx extends DeploymentOptions {
     }
 
     private CompletableFuture<String> doDeploy(Vertx vertx, Object verticle, boolean asyncTimeout) {
-        log.info("deploy verticle start: [{}]", Objects.requireNonNull(verticle));
+        String verticleStr = EzUtil.toString(Objects.requireNonNull(verticle));
+        log.info("deploy verticle start: [{}]", verticleStr);
         final FutureEx<String> future = FutureEx.future();
         if (verticle instanceof String) {
             vertx.deployVerticle((String) verticle, this, future);
@@ -51,7 +54,7 @@ public class DeploymentOptionsEx extends DeploymentOptions {
         return FutureEx.setTimeout(
                 future, vertx, timeout, "deploy"
         ).thenApply(deploymentId -> {
-            log.info("deploy verticle success: [{}], id={}", verticle, deploymentId);
+            log.info("deploy verticle success: [{}], id={}", verticleStr, deploymentId);
             return deploymentId;
         });
     }

@@ -13,6 +13,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import ez.spring.vertx.deploy.AutoDeployer;
+import ez.spring.vertx.deploy.DeploymentOptionsEx;
 import io.vertx.core.Verticle;
 import io.vertx.core.Vertx;
 import io.vertx.core.logging.SLF4JLogDelegateFactory;
@@ -25,15 +27,23 @@ import lombok.extern.slf4j.Slf4j;
 public class VertxConfiguration {
     public static final String PREFIX = "vertx";
     public static final String MAIN_VERTICLE = PREFIX + ".main-verticle";
-
-    public VertxConfiguration(ApplicationContext applicationContext) {
-        ActiveProfiles.createInstance(applicationContext);
-    }
+    private static ApplicationContext applicationContext;
 
     static {
         final String LOGGER_DELEGATE_KEY = "vertx.logger-delegate-factory-class-name";
         if (System.getProperty(LOGGER_DELEGATE_KEY) == null)
             System.setProperty(LOGGER_DELEGATE_KEY, SLF4JLogDelegateFactory.class.getCanonicalName());
+    }
+
+    public VertxConfiguration(ApplicationContext applicationContext) {
+        VertxConfiguration.applicationContext = applicationContext;
+        ActiveProfiles.createInstance(applicationContext);
+    }
+
+    public static ApplicationContext getApplicationContext() {
+        if (applicationContext == null)
+            throw new NullPointerException("VertxConfiguration.applicationContext not init yet");
+        return applicationContext;
     }
 
     @Bean

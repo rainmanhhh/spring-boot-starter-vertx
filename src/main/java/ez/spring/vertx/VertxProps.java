@@ -3,6 +3,7 @@ package ez.spring.vertx;
 import java.util.Collections;
 import java.util.List;
 
+import ez.spring.vertx.deploy.VerticleDeploy;
 import io.vertx.core.VertxOptions;
 import lombok.Data;
 

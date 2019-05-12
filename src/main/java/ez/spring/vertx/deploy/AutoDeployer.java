@@ -1,7 +1,5 @@
-package ez.spring.vertx;
+package ez.spring.vertx.deploy;
 
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.beans.factory.annotation.BeanFactoryAnnotationUtils;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.ApplicationContext;
 import org.springframework.lang.Nullable;
@@ -10,9 +8,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
+import ez.spring.vertx.Beans;
+import ez.spring.vertx.FutureEx;
+import ez.spring.vertx.MainVerticle;
+import ez.spring.vertx.VertxProps;
 import io.vertx.core.Verticle;
 import io.vertx.core.Vertx;
 import lombok.extern.slf4j.Slf4j;
@@ -69,7 +70,6 @@ public class AutoDeployer implements CommandLineRunner {
             allDeploys.sort(Comparator.comparingInt(DeploymentOptionsEx::getOrder));
             // deploy verticles in the list one by one
             CompletableFuture<String> future = CompletableFuture.completedFuture(null);
-            ClassLoader classLoader = Objects.requireNonNull(applicationContext.getClassLoader());
             for (VerticleDeploy verticleDeploy : allDeploys) {
                 if (!verticleDeploy.isEnabled()) {
                     log.debug("skip disabled verticleDeploy, descriptor: {}, qualifier: {}",
@@ -80,33 +80,8 @@ public class AutoDeployer implements CommandLineRunner {
                 if (descriptor.contains(":")) {
                     future = future.thenComposeAsync(o -> verticleDeploy.deploy(vertx, descriptor));
                 } else {
-                    Verticle verticle;
-                    if (applicationContext.containsBean(descriptor)) { // use key as bean name
-                        verticle = applicationContext.getBean(descriptor, Verticle.class);
-                    } else { // use key as class
-                        @SuppressWarnings("unchecked")
-                        Class<? extends Verticle> verticleType = (Class<? extends Verticle>) classLoader.loadClass(descriptor);
-                        try {
-                            String beanQualifier = verticleDeploy.getBeanQualifier();
-                            if (beanQualifier == null)
-                                verticle = applicationContext.getBean(verticleType);
-                            else
-                                verticle = BeanFactoryAnnotationUtils.qualifiedBeanOfType(
-                                        applicationContext.getAutowireCapableBeanFactory(),
-                                        verticleType,
-                                        beanQualifier
-                                );
-                        } catch (NoSuchBeanDefinitionException beanNotFound) {
-                            try {
-                                verticle = verticleType.getConstructor().newInstance();
-                            } catch (Exception e) {
-                                e.addSuppressed(beanNotFound);
-                                throw e;
-                            }
-                        }
-                    }
-                    final Verticle finalVerticle = verticle;
-                    future = future.thenCompose(o -> verticleDeploy.deploy(vertx, finalVerticle));
+                    Verticle verticle = Beans.get(descriptor, verticleDeploy.getBeanQualifier());
+                    future = future.thenCompose(o -> verticleDeploy.deploy(vertx, verticle));
                 }
             }
             return future;
