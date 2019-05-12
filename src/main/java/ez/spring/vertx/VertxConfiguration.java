@@ -26,6 +26,10 @@ public class VertxConfiguration {
     public static final String PREFIX = "vertx";
     public static final String MAIN_VERTICLE = PREFIX + ".main-verticle";
 
+    public VertxConfiguration(ApplicationContext applicationContext) {
+        ActiveProfiles.createInstance(applicationContext);
+    }
+
     static {
         final String LOGGER_DELEGATE_KEY = "vertx.logger-delegate-factory-class-name";
         if (System.getProperty(LOGGER_DELEGATE_KEY) == null)
