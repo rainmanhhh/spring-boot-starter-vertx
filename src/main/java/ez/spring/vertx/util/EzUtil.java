@@ -1,4 +1,4 @@
-package ez.spring.vertx;
+package ez.spring.vertx.util;
 
 import org.springframework.lang.Nullable;
 
