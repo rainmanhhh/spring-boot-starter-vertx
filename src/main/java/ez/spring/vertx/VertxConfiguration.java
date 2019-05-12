@@ -15,12 +15,12 @@ import java.util.concurrent.TimeoutException;
 
 import io.vertx.core.Verticle;
 import io.vertx.core.Vertx;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import io.vertx.core.logging.SLF4JLogDelegateFactory;
 import io.vertx.core.spi.VertxMetricsFactory;
 import io.vertx.core.spi.cluster.ClusterManager;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Configuration
 public class VertxConfiguration {
     public static final String PREFIX = "vertx";
@@ -32,19 +32,17 @@ public class VertxConfiguration {
             System.setProperty(LOGGER_DELEGATE_KEY, SLF4JLogDelegateFactory.class.getCanonicalName());
     }
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-
     @Bean
     public Vertx vertx(VertxProps vertxProps) throws ExecutionException, InterruptedException, TimeoutException {
         final Vertx vertx;
         if (vertxProps.getEventBusOptions().isClustered()) {
             FutureEx<Vertx> futureEx = FutureEx.future();
-            logger.info("waiting vertx join to cluster...");
+            log.info("waiting vertx join to cluster...");
             Vertx.clusteredVertx(vertxProps, futureEx);
             long clusterJoinTimeout = vertxProps.getClusterJoinTimeout();
             vertx = clusterJoinTimeout > 0 ?
                     futureEx.get(clusterJoinTimeout, TimeUnit.MILLISECONDS) : futureEx.get();
-            logger.info("vertx join to cluster success");
+            log.info("vertx join to cluster success");
         } else vertx = Vertx.vertx(vertxProps);
         return vertx;
     }

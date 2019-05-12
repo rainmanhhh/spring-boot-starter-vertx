@@ -1,8 +1,5 @@
 package ez.spring.vertx;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -13,10 +10,11 @@ import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Verticle;
 import io.vertx.core.Vertx;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Data
 public class DeploymentOptionsEx extends DeploymentOptions {
-    public static final Logger logger = LoggerFactory.getLogger(DeploymentOptionsEx.class);
     private boolean enabled = true;
     private int order = 0;
     /**
@@ -38,7 +36,7 @@ public class DeploymentOptionsEx extends DeploymentOptions {
     }
 
     private CompletableFuture<String> doDeploy(Vertx vertx, Object verticle, boolean asyncTimeout) {
-        logger.info("deploy verticle start: [{}]", Objects.requireNonNull(verticle));
+        log.info("deploy verticle start: [{}]", Objects.requireNonNull(verticle));
         final FutureEx<String> future = FutureEx.future();
         if (verticle instanceof String) {
             vertx.deployVerticle((String) verticle, this, future);
@@ -53,7 +51,7 @@ public class DeploymentOptionsEx extends DeploymentOptions {
         return FutureEx.setTimeout(
                 future, vertx, timeout, "deploy"
         ).thenApply(deploymentId -> {
-            logger.info("deploy verticle success: [{}], id={}", verticle, deploymentId);
+            log.info("deploy verticle success: [{}], id={}", verticle, deploymentId);
             return deploymentId;
         });
     }

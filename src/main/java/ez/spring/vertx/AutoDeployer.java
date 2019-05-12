@@ -15,20 +15,19 @@ import java.util.concurrent.CompletableFuture;
 
 import io.vertx.core.Verticle;
 import io.vertx.core.Vertx;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * auto deploy mainVerticle(bean with qualifier annotation {@link MainVerticle})
  * and verticles defined in application config file(prefix=vertx.verticles)
  */
+@Slf4j
 public class AutoDeployer implements CommandLineRunner {
     private final ApplicationContext applicationContext;
     private final Vertx vertx;
     private final VertxProps vertxProps;
     private final Verticle mainVerticle;
     private final DeploymentOptionsEx mainVerticleDeploy;
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     public AutoDeployer(
             ApplicationContext applicationContext,
@@ -46,11 +45,11 @@ public class AutoDeployer implements CommandLineRunner {
 
     private CompletableFuture<String> deployMainVerticle() {
         if (!mainVerticleDeploy.isEnabled()) {
-            logger.info("vertx.main-verticle.enabled is false. skip deploying MainVerticle");
+            log.info("vertx.main-verticle.enabled is false. skip deploying MainVerticle");
             return FutureEx.succeededFuture();
         } else {
             if (mainVerticle == null) {
-                logger.info("MainVerticle bean is null. skip deploying MainVerticle");
+                log.info("MainVerticle bean is null. skip deploying MainVerticle");
                 mainVerticleDeploy.setEnabled(false);
                 return FutureEx.succeededFuture();
             } else {
@@ -73,7 +72,7 @@ public class AutoDeployer implements CommandLineRunner {
             ClassLoader classLoader = Objects.requireNonNull(applicationContext.getClassLoader());
             for (VerticleDeploy verticleDeploy : allDeploys) {
                 if (!verticleDeploy.isEnabled()) {
-                    logger.debug("skip disabled verticleDeploy, descriptor: {}, qualifier: {}",
+                    log.debug("skip disabled verticleDeploy, descriptor: {}, qualifier: {}",
                             verticleDeploy.getDescriptor(), verticleDeploy.getBeanQualifier());
                     continue;
                 }
