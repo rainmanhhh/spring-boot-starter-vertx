@@ -6,10 +6,7 @@ import org.springframework.context.ApplicationContext;
 
 import java.util.Objects;
 
-import lombok.Data;
-
-@Data(staticConstructor = "ofType")
-public class Beans<T> {
+public class Beans {
     @SuppressWarnings("unchecked")
     public static <T> T get(String descriptor, String qualifier) {
         ApplicationContext context = VertxConfiguration.getApplicationContext();
