@@ -2,6 +2,9 @@ package ez.spring.vertx.deploy;
 
 import lombok.Data;
 
+/**
+ * deployment options with verticle descriptor & beanQualifier(valid only if descriptor is a bean class name)
+ */
 @Data
 public class VerticleDeploy extends DeploymentOptionsEx {
     /**
@@ -9,7 +12,7 @@ public class VerticleDeploy extends DeploymentOptionsEx {
      */
     private String descriptor;
     /**
-     * bean qualifier. only valid if {@link #descriptor} is a bean class name
+     * bean qualifier. valid only if {@link #descriptor} is a bean class name
      */
     private String beanQualifier;
 
