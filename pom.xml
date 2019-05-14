@@ -6,7 +6,7 @@
     <groupId>com.github.rainmanhhh</groupId>
     <artifactId>spring-boot-starter-vertx</artifactId>
     <name>spring-boot-starter-vertx</name>
-    <version>0.0.6</version>
+    <version>0.0.7-SNAPSHOT</version>
 
     <properties>
         <java.version>1.8</java.version>

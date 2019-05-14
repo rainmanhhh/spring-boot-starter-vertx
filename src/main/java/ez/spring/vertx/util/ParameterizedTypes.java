@@ -4,6 +4,8 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Objects;
 
+import ez.spring.vertx.VertxConfiguration;
+
 public class ParameterizedTypes<P> {
     private final Type[] actualTypeArguments;
     private final Class<P> parentType;
@@ -30,7 +32,7 @@ public class ParameterizedTypes<P> {
     @SuppressWarnings("unchecked")
     public <T> Class<T> get(int index) {
         String requestTypeName = actualTypeArguments[index].getTypeName();
-        ClassLoader classLoader = Objects.requireNonNull(parentType.getClassLoader());
+        ClassLoader classLoader = Objects.requireNonNull(VertxConfiguration.getApplicationContext().getClassLoader());
         try {
             return (Class<T>) classLoader.loadClass(requestTypeName);
         } catch (ClassNotFoundException e) {
