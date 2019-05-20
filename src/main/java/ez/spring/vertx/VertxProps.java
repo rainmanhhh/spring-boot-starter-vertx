@@ -14,7 +14,7 @@ public class VertxProps extends VertxOptions {
      */
     private long clusterJoinTimeout = 30_000L;
     /**
-     * timeout of deploy all configured verticles(in beans & config files).
+     * timeout of deploy all configured verticles(in beans and config files).
      * unit: {@link java.util.concurrent.TimeUnit#MILLISECONDS}.
      * less than 0 means wait forever
      */

@@ -5,7 +5,7 @@ package ez.spring.vertx.deploy;
  */
 public class VerticleDeploy extends DeploymentOptionsEx {
     /**
-     * verticle descriptor. ex: `groovy:com.xx.yy.ZVerticle`, `service:http://xx.yy/zVerticle.zip`, `someBeanName`
+     * verticle descriptor. ex: `xx.yy.ZVerticle`, `groovy:com.xx.yy.ZVerticle`, `service:http://xx.yy/zVerticle.zip`, `someBeanName`
      */
     private String descriptor;
     /**
