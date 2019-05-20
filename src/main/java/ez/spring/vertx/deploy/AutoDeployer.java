@@ -1,5 +1,7 @@
 package ez.spring.vertx.deploy;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.ApplicationContext;
 import org.springframework.lang.Nullable;
@@ -16,14 +18,13 @@ import ez.spring.vertx.MainVerticle;
 import ez.spring.vertx.VertxProps;
 import io.vertx.core.Verticle;
 import io.vertx.core.Vertx;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * auto deploy mainVerticle(bean with qualifier annotation {@link MainVerticle})
  * and verticles defined in application config file(prefix=vertx.verticles)
  */
-@Slf4j
 public class AutoDeployer implements CommandLineRunner {
+    private final Logger log = LoggerFactory.getLogger(getClass());
     private final ApplicationContext applicationContext;
     private final Vertx vertx;
     private final VertxProps vertxProps;

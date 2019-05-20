@@ -8,11 +8,10 @@ import ez.spring.vertx.VertxConfiguration;
 
 public class ParameterizedTypes<P> {
     private final Type[] actualTypeArguments;
-    private final Class<P> parentType;
 
     private ParameterizedTypes(Class<P> parentClass, Class<? extends P> childClass) {
+        Objects.requireNonNull(parentClass);
         Objects.requireNonNull(childClass);
-        this.parentType = Objects.requireNonNull(parentClass);
         if (!parentClass.isAssignableFrom(childClass)) throw new IllegalArgumentException(
                 childClass.getCanonicalName() + " is not inherited from " + parentClass.getCanonicalName()
         );

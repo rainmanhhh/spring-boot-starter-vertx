@@ -1,5 +1,7 @@
 package ez.spring.vertx;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -20,9 +22,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.logging.SLF4JLogDelegateFactory;
 import io.vertx.core.spi.VertxMetricsFactory;
 import io.vertx.core.spi.cluster.ClusterManager;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Configuration
 public class VertxConfiguration {
     public static final String PREFIX = "vertx";
@@ -34,6 +34,8 @@ public class VertxConfiguration {
         if (System.getProperty(LOGGER_DELEGATE_KEY) == null)
             System.setProperty(LOGGER_DELEGATE_KEY, SLF4JLogDelegateFactory.class.getCanonicalName());
     }
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     public VertxConfiguration(ApplicationContext applicationContext) {
         VertxConfiguration.applicationContext = applicationContext;

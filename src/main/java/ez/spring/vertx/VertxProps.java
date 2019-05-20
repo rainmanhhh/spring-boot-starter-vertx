@@ -5,9 +5,7 @@ import java.util.List;
 
 import ez.spring.vertx.deploy.VerticleDeploy;
 import io.vertx.core.VertxOptions;
-import lombok.Data;
 
-@Data
 public class VertxProps extends VertxOptions {
     /**
      * timeout of joining to the cluster.
@@ -35,9 +33,36 @@ public class VertxProps extends VertxOptions {
      */
     public VertxProps() {
         if (ActiveProfiles.getInstance().isDev()) {
-            setMaxEventLoopExecuteTime(2_000_000_000_000_000L);
-            setMaxWorkerExecuteTime(60_000_000_000_000_000L);
-            setBlockedThreadCheckInterval(1_000_000_000L);
+            setMaxEventLoopExecuteTime(2_000_000_000_000_000L); // 2 million seconds
+            setMaxWorkerExecuteTime(60_000_000_000_000_000L); // 60 million seconds
+            setBlockedThreadCheckInterval(1_000_000_000L); // 1 million seconds
         }
+    }
+
+    public long getClusterJoinTimeout() {
+        return clusterJoinTimeout;
+    }
+
+    public VertxProps setClusterJoinTimeout(long clusterJoinTimeout) {
+        this.clusterJoinTimeout = clusterJoinTimeout;
+        return this;
+    }
+
+    public long getDeployTimeout() {
+        return deployTimeout;
+    }
+
+    public VertxProps setDeployTimeout(long deployTimeout) {
+        this.deployTimeout = deployTimeout;
+        return this;
+    }
+
+    public List<VerticleDeploy> getVerticles() {
+        return verticles;
+    }
+
+    public VertxProps setVerticles(List<VerticleDeploy> verticles) {
+        this.verticles = verticles;
+        return this;
     }
 }
