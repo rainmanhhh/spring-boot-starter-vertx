@@ -1,11 +1,17 @@
 package ez.spring.vertx.util;
 
+import ez.spring.vertx.VertxConfiguration;
+
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Objects;
 
-import ez.spring.vertx.VertxConfiguration;
-
+/**
+ * get actual parameterized types from child class.<br>
+ * eg. <pre>class Child extends Parent&lt;String, Integer&gt;</pre>,
+ * result.get(0) will return String.class,
+ * result.get(1) will return Integer.class
+ */
 public class ParameterizedTypes<P> {
     private final Type[] actualTypeArguments;
 
