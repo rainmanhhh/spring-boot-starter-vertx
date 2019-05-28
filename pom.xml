@@ -21,10 +21,4 @@
         <groupId>com.github.rainmanhhh</groupId>
         <version>0.0.9-SNAPSHOT</version>
     </parent>
-    <repositories>
-        <repository>
-            <id>jitpack</id>
-            <url>https://jitpack.io</url>
-        </repository>
-    </repositories>
 </project>
