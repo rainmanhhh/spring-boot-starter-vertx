@@ -21,6 +21,8 @@ public class EzUtil {
      *
      * @param parentClass generic parent class
      * @param childClass  child class which has actual parameterized types
+     * @param <P> parent type
+     * @return actual parameterized types
      */
     public static <P> ParameterizedTypes<P> parameterizedTypes(Class<P> parentClass, Class<? extends P> childClass) {
         return ParameterizedTypes.of(parentClass, childClass);

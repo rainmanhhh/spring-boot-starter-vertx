@@ -1,8 +1,14 @@
 package ez.spring.vertx.deploy;
 
+import ez.spring.vertx.Beans;
+import ez.spring.vertx.EzJob;
+import ez.spring.vertx.MainVerticle;
+import ez.spring.vertx.VertxProps;
+import io.vertx.core.Future;
+import io.vertx.core.Verticle;
+import io.vertx.core.Vertx;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.ApplicationContext;
 import org.springframework.lang.Nullable;
 
@@ -10,20 +16,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-
-import ez.spring.vertx.Beans;
-import ez.spring.vertx.FutureEx;
-import ez.spring.vertx.MainVerticle;
-import ez.spring.vertx.VertxProps;
-import io.vertx.core.Verticle;
-import io.vertx.core.Vertx;
 
 /**
  * auto deploy mainVerticle(bean with qualifier annotation {@link MainVerticle})
  * and verticles defined in application config file(prefix=vertx.verticles)
  */
-public class AutoDeployer implements CommandLineRunner {
+public class AutoDeployer implements Runnable {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final ApplicationContext applicationContext;
     private final Vertx vertx;
@@ -45,22 +43,22 @@ public class AutoDeployer implements CommandLineRunner {
         this.mainVerticleDeploy = mainVerticleDeploy;
     }
 
-    private CompletableFuture<String> deployMainVerticle() {
+    private Future<String> deployMainVerticle() {
         if (!mainVerticleDeploy.isEnabled()) {
             log.info("vertx.main-verticle.enabled is false. skip deploying MainVerticle");
-            return FutureEx.succeededFuture();
+            return Future.succeededFuture();
         } else {
             if (mainVerticle == null) {
                 log.info("MainVerticle bean is null. skip deploying MainVerticle");
                 mainVerticleDeploy.setEnabled(false);
-                return FutureEx.succeededFuture();
+                return Future.succeededFuture();
             } else {
                 return mainVerticleDeploy.deploy(vertx, mainVerticle);
             }
         }
     }
 
-    private CompletableFuture<String> deployVerticles() {
+    private Future<String> deployVerticles() {
         try {
             // merge VerticleDeploy beans & VerticleDeploy configList(sort by order)
             Collection<VerticleDeploy> beans = applicationContext.getBeansOfType(VerticleDeploy.class).values();
@@ -70,7 +68,7 @@ public class AutoDeployer implements CommandLineRunner {
             allDeploys.addAll(configList);
             allDeploys.sort(Comparator.comparingInt(DeploymentOptionsEx::getOrder));
             // deploy verticles in the list one by one
-            CompletableFuture<String> future = CompletableFuture.completedFuture(null);
+            Future<String> future = Future.succeededFuture();
             for (VerticleDeploy verticleDeploy : allDeploys) {
                 if (!verticleDeploy.isEnabled()) {
                     log.debug("skip disabled verticleDeploy, descriptor: {}, qualifier: {}",
@@ -79,28 +77,29 @@ public class AutoDeployer implements CommandLineRunner {
                 }
                 String descriptor = verticleDeploy.getDescriptor();
                 if (descriptor.contains(":")) {
-                    future = future.thenComposeAsync(o -> verticleDeploy.deploy(vertx, descriptor));
+                    future = future.compose(o -> verticleDeploy.deploy(vertx, descriptor));
                 } else {
                     Verticle verticle = Beans.get(descriptor, verticleDeploy.getBeanQualifier());
-                    future = future.thenCompose(o -> verticleDeploy.deploy(vertx, verticle));
+                    future = future.compose(o -> verticleDeploy.deploy(vertx, verticle));
                 }
             }
             return future;
         } catch (Exception e) {
-            return FutureEx.failedFuture(e);
+            return Future.failedFuture(e);
         }
     }
 
     @Override
-    public void run(String... args) {
-        CompletableFuture<?> future = FutureEx.succeededFuture()
-                .thenCompose(o -> deployMainVerticle())
-                .thenCompose(o -> deployVerticles())
-                .thenCompose(lastDeploymentId -> {
+    public void run() {
+        EzJob.create("deploy verticles")
+                .addStep(o -> deployMainVerticle())
+                .addStep(o -> deployVerticles())
+                .addStep(lastDeploymentId -> {
                     if (lastDeploymentId == null && !mainVerticleDeploy.isEnabled()) {
-                        return FutureEx.failedFuture("no enabled mainVerticle, no configured verticles");
-                    } else return FutureEx.succeededFuture(lastDeploymentId);
-                });
-        FutureEx.setTimeout(future, vertx, vertxProps.getDeployTimeout(), "deploy").join();
+                        log.warn("no enabled mainVerticle, no configured verticles");
+                    }
+                    return Future.succeededFuture(lastDeploymentId);
+                })
+                .startAndWait(vertx, vertxProps.getDeployTimeout());
     }
 }

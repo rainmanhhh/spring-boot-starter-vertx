@@ -1,19 +1,12 @@
 package ez.spring.vertx.deploy;
 
+import ez.spring.vertx.EzJob;
+import ez.spring.vertx.util.EzUtil;
+import io.vertx.core.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
-import ez.spring.vertx.FutureEx;
-import ez.spring.vertx.util.EzUtil;
-import io.vertx.core.DeploymentOptions;
-import io.vertx.core.Verticle;
-import io.vertx.core.Vertx;
 
 public class DeploymentOptionsEx extends DeploymentOptions {
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -37,51 +30,45 @@ public class DeploymentOptionsEx extends DeploymentOptions {
         timeout = other.timeout;
     }
 
-    private CompletableFuture<String> doDeploy(Vertx vertx, Object verticle, boolean asyncTimeout) {
+    private EzJob<String> createDeployJob(Vertx vertx, Object verticle) {
         String verticleStr = EzUtil.toString(Objects.requireNonNull(verticle));
-        log.info("deploy verticle start: [{}]", verticleStr);
-        final FutureEx<String> future = FutureEx.future();
-        if (verticle instanceof String) {
-            vertx.deployVerticle((String) verticle, this, future);
-        } else if (verticle instanceof Verticle) {
-            vertx.deployVerticle((Verticle) verticle, this, future);
-        } else {
-            String message = "verticle class should be String or Verticle, but actually: " + verticle.getClass().getCanonicalName();
-            if (future.fail(message)) return future;
-            else return FutureEx.failedFuture(message);
-        }
-        long timeout = asyncTimeout ? getTimeout() : 0;
-        return FutureEx.setTimeout(
-                future, vertx, timeout, "deploy"
-        ).thenApply(deploymentId -> {
-            log.info("deploy verticle success: [{}], id={}", verticleStr, deploymentId);
-            return deploymentId;
-        });
+        return EzJob.create("deDeploy")
+                .addStep((Object o, Promise<String> p) -> {
+                    if (verticle instanceof String) {
+                        vertx.deployVerticle((String) verticle, this, p);
+                    } else if (verticle instanceof Verticle) {
+                        vertx.deployVerticle((Verticle) verticle, this, p);
+                    } else {
+                        p.fail("param `verticle` should be String or Verticle, but actually: " + verticle.getClass().getCanonicalName());
+                    }
+                })
+                .addStep(deploymentId -> {
+                    log.info("deploy verticle success: [{}], id={}", verticleStr, deploymentId);
+                    return Promise.succeededPromise(deploymentId).future();
+                });
     }
 
-    private CompletableFuture<String> doDeployAsync(Vertx vertx, Object verticle) {
-        return doDeploy(vertx, verticle, true);
+    private Future<String> doDeployAsync(Vertx vertx, Object verticle) {
+        return createDeployJob(vertx, verticle).start();
     }
 
-    private String doDeploySync(Vertx vertx, Object verticle) throws InterruptedException, ExecutionException, TimeoutException {
-        CompletableFuture<String> future = doDeploy(vertx, verticle, false);
-        long timeout = getTimeout();
-        return timeout > 0 ? future.get(timeout, TimeUnit.SECONDS) : future.get();
+    private String doDeploySync(Vertx vertx, Object verticle) {
+        return createDeployJob(vertx, verticle).startAndWait(vertx, getTimeout());
     }
 
-    public CompletableFuture<String> deploy(Vertx vertx, Verticle verticle) {
+    public Future<String> deploy(Vertx vertx, Verticle verticle) {
         return doDeployAsync(vertx, verticle);
     }
 
-    public CompletableFuture<String> deploy(Vertx vertx, String descriptor) {
+    public Future<String> deploy(Vertx vertx, String descriptor) {
         return doDeployAsync(vertx, descriptor);
     }
 
-    public String deploySync(Vertx vertx, Verticle verticle) throws InterruptedException, ExecutionException, TimeoutException {
+    public String deploySync(Vertx vertx, Verticle verticle) {
         return doDeploySync(vertx, verticle);
     }
 
-    public String deploySync(Vertx vertx, String descriptor) throws InterruptedException, ExecutionException, TimeoutException {
+    public String deploySync(Vertx vertx, String descriptor) {
         return doDeploySync(vertx, descriptor);
     }
 

@@ -1,5 +1,12 @@
 package ez.spring.vertx;
 
+import ez.spring.vertx.deploy.AutoDeployer;
+import ez.spring.vertx.deploy.DeploymentOptionsEx;
+import io.vertx.core.Verticle;
+import io.vertx.core.Vertx;
+import io.vertx.core.logging.SLF4JLogDelegateFactory;
+import io.vertx.core.spi.VertxMetricsFactory;
+import io.vertx.core.spi.cluster.ClusterManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,17 +18,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.Nullable;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
-import ez.spring.vertx.deploy.AutoDeployer;
-import ez.spring.vertx.deploy.DeploymentOptionsEx;
-import io.vertx.core.Verticle;
-import io.vertx.core.Vertx;
-import io.vertx.core.logging.SLF4JLogDelegateFactory;
-import io.vertx.core.spi.VertxMetricsFactory;
-import io.vertx.core.spi.cluster.ClusterManager;
 
 @Configuration
 public class VertxConfiguration {
@@ -52,12 +52,12 @@ public class VertxConfiguration {
     public Vertx vertx(VertxProps vertxProps) throws ExecutionException, InterruptedException, TimeoutException {
         final Vertx vertx;
         if (vertxProps.getEventBusOptions().isClustered()) {
-            FutureEx<Vertx> futureEx = FutureEx.future();
+            CompletableFuture<Vertx> future = new CompletableFuture<>();
             log.info("waiting vertx join to cluster...");
-            Vertx.clusteredVertx(vertxProps, futureEx);
+            Vertx.clusteredVertx(vertxProps, EzPromise.promise(future));
             long clusterJoinTimeout = vertxProps.getClusterJoinTimeout();
             vertx = clusterJoinTimeout > 0 ?
-                    futureEx.get(clusterJoinTimeout, TimeUnit.MILLISECONDS) : futureEx.get();
+                    future.get(clusterJoinTimeout, TimeUnit.MILLISECONDS) : future.get();
             log.info("vertx join to cluster success");
         } else vertx = Vertx.vertx(vertxProps);
         return vertx;
@@ -113,6 +113,8 @@ public class VertxConfiguration {
             @Qualifier(MAIN_VERTICLE) DeploymentOptionsEx mainVerticleDeploy,
             @Autowired(required = false) @MainVerticle Verticle mainVerticle
     ) {
-        return new AutoDeployer(applicationContext, vertx, vertxProps, mainVerticle, mainVerticleDeploy);
+        AutoDeployer autoDeployer = new AutoDeployer(applicationContext, vertx, vertxProps, mainVerticle, mainVerticleDeploy);
+        autoDeployer.run();
+        return autoDeployer;
     }
 }

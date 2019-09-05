@@ -1,10 +1,10 @@
 package ez.spring.vertx;
 
-import java.util.Collections;
-import java.util.List;
-
 import ez.spring.vertx.deploy.VerticleDeploy;
 import io.vertx.core.VertxOptions;
+
+import java.util.Collections;
+import java.util.List;
 
 public class VertxProps extends VertxOptions {
     /**
@@ -18,7 +18,7 @@ public class VertxProps extends VertxOptions {
      * unit: {@link java.util.concurrent.TimeUnit#MILLISECONDS}.
      * less than 0 means wait forever
      */
-    private long deployTimeout = 180_000L;
+    private long deployTimeout = 120_000L;
     /**
      * verticles to deploy at vertx start(after main verticle deployed).
      *
