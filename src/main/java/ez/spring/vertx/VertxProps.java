@@ -26,19 +26,6 @@ public class VertxProps extends VertxOptions {
      */
     private List<VerticleDeploy> verticles = Collections.emptyList();
 
-    /**
-     * if {@link ActiveProfiles#isDev()}, use large value for
-     * {@link #getMaxEventLoopExecuteTime()}, {@link #getMaxWorkerExecuteTime()}, {@link #getBlockedThreadCheckInterval()}
-     * to avoid timeout
-     */
-    public VertxProps() {
-        if (ActiveProfiles.getInstance().isDev()) {
-            setMaxEventLoopExecuteTime(2_000_000_000_000_000L); // 2 million seconds
-            setMaxWorkerExecuteTime(60_000_000_000_000_000L); // 60 million seconds
-            setBlockedThreadCheckInterval(1_000_000_000L); // 1 million seconds
-        }
-    }
-
     public long getClusterJoinTimeout() {
         return clusterJoinTimeout;
     }

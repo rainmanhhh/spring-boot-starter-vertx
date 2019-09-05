@@ -4,6 +4,7 @@ import ez.spring.vertx.deploy.AutoDeployer;
 import ez.spring.vertx.deploy.DeploymentOptionsEx;
 import io.vertx.core.Verticle;
 import io.vertx.core.Vertx;
+import io.vertx.core.VertxOptions;
 import io.vertx.core.logging.SLF4JLogDelegateFactory;
 import io.vertx.core.spi.VertxMetricsFactory;
 import io.vertx.core.spi.cluster.ClusterManager;
@@ -73,6 +74,12 @@ public class VertxConfiguration {
         VertxProps vertxProps = new VertxProps();
         if (clusterManager != null) vertxProps.setClusterManager(clusterManager);
         if (metricsFactory != null) vertxProps.getMetricsOptions().setFactory(metricsFactory);
+        if (ActiveProfiles.getInstance().isDev()) { // use large timeout for development
+            vertxProps
+                    .setMaxEventLoopExecuteTime(2_000_000_000_000_000L) // 2 million seconds
+                    .setMaxWorkerExecuteTime(60_000_000_000_000_000L) // 60 million seconds
+                    .setBlockedThreadCheckInterval(1_000_000_000L); // 1 million seconds
+        }
         return vertxProps;
     }
 
@@ -113,8 +120,6 @@ public class VertxConfiguration {
             @Qualifier(MAIN_VERTICLE) DeploymentOptionsEx mainVerticleDeploy,
             @Autowired(required = false) @MainVerticle Verticle mainVerticle
     ) {
-        AutoDeployer autoDeployer = new AutoDeployer(applicationContext, vertx, vertxProps, mainVerticle, mainVerticleDeploy);
-        autoDeployer.run();
-        return autoDeployer;
+        return new AutoDeployer(applicationContext, vertx, vertxProps, mainVerticle, mainVerticleDeploy);
     }
 }

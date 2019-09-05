@@ -9,6 +9,7 @@ import io.vertx.core.Verticle;
 import io.vertx.core.Vertx;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.ApplicationContext;
 import org.springframework.lang.Nullable;
 
@@ -21,7 +22,7 @@ import java.util.List;
  * auto deploy mainVerticle(bean with qualifier annotation {@link MainVerticle})
  * and verticles defined in application config file(prefix=vertx.verticles)
  */
-public class AutoDeployer implements Runnable {
+public class AutoDeployer implements CommandLineRunner {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final ApplicationContext applicationContext;
     private final Vertx vertx;
@@ -90,8 +91,8 @@ public class AutoDeployer implements Runnable {
     }
 
     @Override
-    public void run() {
-        EzJob.create("deploy verticles")
+    public void run(String... args) {
+        EzJob.create(vertx, "deploy verticles")
                 .addStep(o -> deployMainVerticle())
                 .addStep(o -> deployVerticles())
                 .addStep(lastDeploymentId -> {
@@ -100,6 +101,6 @@ public class AutoDeployer implements Runnable {
                     }
                     return Future.succeededFuture(lastDeploymentId);
                 })
-                .startAndWait(vertx, vertxProps.getDeployTimeout());
+                .startAndWait(vertxProps.getDeployTimeout());
     }
 }

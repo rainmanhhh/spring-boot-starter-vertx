@@ -1,14 +1,13 @@
 package ez.spring.vertx;
 
-import io.vertx.core.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.vertx.core.Future;
+import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 public class EzPromise {
-    public static Logger logger = LoggerFactory.getLogger(EzPromise.class);
-
     public static <T> Promise<T> promise(CompletableFuture<T> future) {
         Promise<T> promise = Promise.promise();
         future.whenComplete((value, err) -> {
@@ -24,8 +23,9 @@ public class EzPromise {
      * @param future origin vertx future
      * @param <T>    future value type
      * @return wrapped jdk future
+     * @throws CompletionException if future failed
      */
-    public static <T> CompletableFuture completableFuture(Future<T> future) {
+    public static <T> CompletableFuture completableFuture(Future<T> future) throws CompletionException {
         CompletableFuture<T> completableFuture = new CompletableFuture<>();
         future.setHandler(event -> {
             if (event.succeeded()) completableFuture.complete(event.result());
@@ -35,14 +35,7 @@ public class EzPromise {
     }
 
     public static <T> Promise<T> setTimeout(Promise<T> promise, Vertx vertx, long milliseconds, String jobName) {
-        if (milliseconds > 0) {
-            vertx.setTimer(milliseconds, id -> {
-                if (!promise.future().isComplete()) {
-                    promise.fail("job[" + id + "] " + jobName + " timeout!");
-                }
-            });
-        }
-        return promise;
+        return EzJob.create(vertx, jobName).addStep(o -> promise.future()).start(milliseconds);
     }
 
     public static <T> Promise<T> setTimeout(Promise<T> promise, Vertx vertx, long milliseconds) {

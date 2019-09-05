@@ -30,9 +30,9 @@ public class DeploymentOptionsEx extends DeploymentOptions {
         timeout = other.timeout;
     }
 
-    private EzJob<String> createDeployJob(Vertx vertx, Object verticle) {
-        String verticleStr = EzUtil.toString(Objects.requireNonNull(verticle));
-        return EzJob.create("deDeploy")
+    private EzJob<String> createJob(Vertx vertx, Object verticle) {
+        String verticleStr = verticle instanceof String ? ((String) verticle) : EzUtil.toString(Objects.requireNonNull(verticle));
+        return EzJob.create(vertx,"deploy verticle " + verticleStr)
                 .addStep((Object o, Promise<String> p) -> {
                     if (verticle instanceof String) {
                         vertx.deployVerticle((String) verticle, this, p);
@@ -49,11 +49,11 @@ public class DeploymentOptionsEx extends DeploymentOptions {
     }
 
     private Future<String> doDeployAsync(Vertx vertx, Object verticle) {
-        return createDeployJob(vertx, verticle).start();
+        return createJob(vertx, verticle).start().future();
     }
 
     private String doDeploySync(Vertx vertx, Object verticle) {
-        return createDeployJob(vertx, verticle).startAndWait(vertx, getTimeout());
+        return createJob(vertx, verticle).startAndWait(getTimeout());
     }
 
     public Future<String> deploy(Vertx vertx, Verticle verticle) {
