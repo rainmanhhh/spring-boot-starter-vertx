@@ -24,7 +24,7 @@ public class SpringVertxCoreTests {
     public void undeployMainVerticle() {
         EzJob<Void> job = EzJob.create(vertx, "undeploy mainVerticle")
                 .addStep((o, p) -> vertx.undeploy(SpringVertxCoreTestApp.id, p));
-        job.startAndWait();
+        job.startSyncWait();
     }
 
     @Timed(millis = 5_000L)
@@ -33,7 +33,7 @@ public class SpringVertxCoreTests {
         try {
             EzJob.create(vertx, "timeout job")
                     .addStep(o -> Promise.promise().future())
-                    .startAndWait(200);
+                    .startSyncWait(200);
         } catch (CompletionException e) {
             Assert.assertTrue(e.getCause() instanceof TimeoutException);
         }

@@ -53,7 +53,7 @@ public class DeploymentOptionsEx extends DeploymentOptions {
     }
 
     private String doDeploySync(Vertx vertx, Object verticle) {
-        return createJob(vertx, verticle).startAndWait(getTimeout());
+        return createJob(vertx, verticle).startSyncWait(getTimeout());
     }
 
     public Future<String> deploy(Vertx vertx, Verticle verticle) {

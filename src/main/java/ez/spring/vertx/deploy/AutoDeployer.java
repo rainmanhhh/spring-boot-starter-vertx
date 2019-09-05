@@ -101,6 +101,6 @@ public class AutoDeployer implements CommandLineRunner {
                     }
                     return Future.succeededFuture(lastDeploymentId);
                 })
-                .startAndWait(vertxProps.getDeployTimeout());
+                .startSyncWait(vertxProps.getDeployTimeout());
     }
 }

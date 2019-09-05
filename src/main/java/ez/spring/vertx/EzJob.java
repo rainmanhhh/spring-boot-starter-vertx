@@ -80,14 +80,14 @@ public class EzJob<F> {
         return promise;
     }
 
-    public F startAndWait(long milliseconds) throws CompletionException {
+    public F startSyncWait(long milliseconds) throws CompletionException {
         //noinspection unchecked
         return (F) EzPromise.completableFuture(
                 start(milliseconds).future()
         ).join();
     }
 
-    public F startAndWait() throws CompletionException {
+    public F startSyncWait() throws CompletionException {
         log.info("waiting sync job: [{}]", name);
         //noinspection unchecked
         return (F) EzPromise.completableFuture(
