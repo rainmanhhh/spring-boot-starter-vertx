@@ -16,10 +16,12 @@ import io.vertx.core.http.HttpServerOptions;
 @Configuration
 @ConfigurationProperties(VertxConfiguration.PREFIX + ".http-server")
 public class HttpServerConfiguration extends HttpServerOptions {
+    public static final int DEFAULT_PORT = 8999;
+
     public HttpServerConfiguration(ServerProperties serverProperties) {
         super();
         Integer port = serverProperties.getPort();
-        setPort(port == null ? 8080 : port);
+        setPort(port == null || port < 0 ? DEFAULT_PORT : port);
         setCompressionSupported(serverProperties.getCompression().getEnabled());
     }
 }
