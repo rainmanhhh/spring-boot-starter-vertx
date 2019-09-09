@@ -4,8 +4,10 @@ import ez.spring.vertx.deploy.AutoDeployer;
 import ez.spring.vertx.deploy.DeploymentOptionsEx;
 import io.vertx.core.Verticle;
 import io.vertx.core.Vertx;
-import io.vertx.core.VertxOptions;
+import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.file.FileSystem;
 import io.vertx.core.logging.SLF4JLogDelegateFactory;
+import io.vertx.core.shareddata.SharedData;
 import io.vertx.core.spi.VertxMetricsFactory;
 import io.vertx.core.spi.cluster.ClusterManager;
 import org.slf4j.Logger;
@@ -121,5 +123,20 @@ public class VertxConfiguration {
             @Autowired(required = false) @MainVerticle Verticle mainVerticle
     ) {
         return new AutoDeployer(applicationContext, vertx, vertxProps, mainVerticle, mainVerticleDeploy);
+    }
+
+    @Bean
+    public EventBus eventBus(Vertx vertx) {
+        return vertx.eventBus();
+    }
+
+    @Bean
+    public FileSystem fileSystem(Vertx vertx) {
+        return vertx.fileSystem();
+    }
+
+    @Bean
+    public SharedData sharedData(Vertx vertx) {
+        return vertx.sharedData();
     }
 }

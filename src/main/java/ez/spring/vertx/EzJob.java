@@ -37,10 +37,24 @@ public class EzJob<F> {
         return new EzJob<P>(vertx, idStr, jobName, starter, starter.future());
     }
 
+    /**
+     * add a step to job chain
+     *
+     * @param action function receives last step result and returns next future
+     * @param <R>    next future type
+     * @return a new job object with added step
+     */
     public <R> EzJob<R> addStep(Function<F, Future<R>> action) {
         return new EzJob<>(vertx, id, name, starter, future.compose(action));
     }
 
+    /**
+     * add a step to job chain
+     *
+     * @param action function receives last step result and promise(starter) for next step
+     * @param <T>    next step promise(starter) type. eg: in `Vertx.clusteredVertx(options, p)` T is Vertx
+     * @return a new job object with added step
+     */
     public <T> EzJob<T> addStep(BiConsumer<F, Promise<T>> action) {
         return addStep((F f) -> {
             Promise<T> p = Promise.promise();
@@ -49,6 +63,11 @@ public class EzJob<F> {
         });
     }
 
+    /**
+     * start job asynchronously
+     *
+     * @return the promise
+     */
     public Promise<F> start() {
         log.info("job start [{}][{}]", id, name);
         Promise<F> p = Promise.promise();
@@ -67,6 +86,12 @@ public class EzJob<F> {
         return p;
     }
 
+    /**
+     * start job with timeout
+     *
+     * @param milliseconds wait time. less than or equals to 0 means never timeout
+     * @return last step result
+     */
     public Promise<F> start(long milliseconds) {
         Promise<F> promise = start();
         if (milliseconds > 0) {
@@ -80,6 +105,13 @@ public class EzJob<F> {
         return promise;
     }
 
+    /**
+     * start job with timeout
+     *
+     * @param milliseconds wait time. less than or equals to 0 means never timeout
+     * @return last step result
+     * @throws CompletionException any step failed
+     */
     public F startSyncWait(long milliseconds) throws CompletionException {
         //noinspection unchecked
         return (F) EzPromise.completableFuture(
@@ -87,6 +119,12 @@ public class EzJob<F> {
         ).join();
     }
 
+    /**
+     * start job without timeout
+     *
+     * @return last step result
+     * @throws CompletionException any step failed
+     */
     public F startSyncWait() throws CompletionException {
         log.info("waiting sync job: [{}]", name);
         //noinspection unchecked
