@@ -1,5 +1,6 @@
 package ez.spring.vertx.http;
 
+import ez.spring.vertx.Main;
 import ez.spring.vertx.VertxConfiguration;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
@@ -16,14 +17,14 @@ public class HttpServerConfiguration {
 
     @Lazy
     @ConfigurationProperties(VertxConfiguration.PREFIX + ".http-server")
-    @ConditionalOnMissingBean(HttpServerOptions.class)
+    @ConditionalOnMissingBean(value = HttpServerOptions.class, annotation = Main.class)
     @Bean
     public HttpServerOptions httpServerOptions() {
         return new HttpServerOptions().setPort(DEFAULT_PORT);
     }
 
     @Bean
-    @ConditionalOnMissingBean(HttpServer.class)
+    @ConditionalOnMissingBean(value = HttpServer.class, annotation = Main.class)
     @Scope(scopeName = "thread", proxyMode = ScopedProxyMode.INTERFACES)
     public HttpServer httpServer(Vertx vertx, HttpServerOptions options) {
         return vertx.createHttpServer(options);

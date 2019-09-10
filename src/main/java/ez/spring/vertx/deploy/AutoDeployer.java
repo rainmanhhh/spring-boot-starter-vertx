@@ -2,7 +2,7 @@ package ez.spring.vertx.deploy;
 
 import ez.spring.vertx.Beans;
 import ez.spring.vertx.EzJob;
-import ez.spring.vertx.MainVerticle;
+import ez.spring.vertx.Main;
 import ez.spring.vertx.VertxProps;
 import io.vertx.core.Future;
 import io.vertx.core.Verticle;
@@ -19,7 +19,7 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * auto deploy mainVerticle(bean with qualifier annotation {@link MainVerticle})
+ * auto deploy mainVerticle(bean of class {@link Verticle} with qualifier annotation {@link Main})
  * and verticles defined in application config file(prefix=vertx.verticles)
  */
 public class AutoDeployer implements CommandLineRunner {

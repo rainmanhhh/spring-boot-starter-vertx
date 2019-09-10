@@ -1,5 +1,6 @@
 package ez.spring.vertx.http;
 
+import ez.spring.vertx.Main;
 import ez.spring.vertx.VertxConfiguration;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
@@ -13,7 +14,7 @@ import org.springframework.context.annotation.*;
 @ConditionalOnMissingBean(HttpClientOptions.class)
 public class HttpClientConfiguration {
     @Lazy
-    @ConditionalOnMissingBean(HttpClientOptions.class)
+    @ConditionalOnMissingBean(value = HttpClientOptions.class, annotation = Main.class)
     @ConfigurationProperties(VertxConfiguration.PREFIX + ".http-client")
     @Bean
     public HttpClientOptions httpClientOptions() {
@@ -21,7 +22,7 @@ public class HttpClientConfiguration {
     }
 
     @Bean
-    @ConditionalOnMissingBean(HttpClient.class)
+    @ConditionalOnMissingBean(value = HttpClient.class, annotation = Main.class)
     @Scope(scopeName = "thread", proxyMode = ScopedProxyMode.INTERFACES)
     public HttpClient httpClient(Vertx vertx, HttpClientOptions options) {
         return vertx.createHttpClient(options);

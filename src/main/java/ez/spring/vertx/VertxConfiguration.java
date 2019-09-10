@@ -29,7 +29,6 @@ import java.util.concurrent.TimeoutException;
 @Configuration
 public class VertxConfiguration {
     public static final String PREFIX = "vertx";
-    public static final String MAIN_VERTICLE = PREFIX + ".main-verticle";
     private static ApplicationContext applicationContext;
 
     static {
@@ -99,16 +98,16 @@ public class VertxConfiguration {
         return null;
     }
 
-    @Qualifier(MAIN_VERTICLE)
-    @ConfigurationProperties(MAIN_VERTICLE)
+    @Main
+    @ConfigurationProperties(PREFIX + ".main-verticle")
     @Bean
     public DeploymentOptionsEx mainVerticleDeploy() {
         return new DeploymentOptionsEx();
     }
 
     @Nullable
-    @ConditionalOnMissingBean(value = Verticle.class, annotation = MainVerticle.class)
-    @MainVerticle
+    @ConditionalOnMissingBean(value = Verticle.class, annotation = Main.class)
+    @Main
     @Bean
     public Verticle mainVerticle() {
         return null;
@@ -119,8 +118,8 @@ public class VertxConfiguration {
             ApplicationContext applicationContext,
             Vertx vertx,
             VertxProps vertxProps,
-            @Qualifier(MAIN_VERTICLE) DeploymentOptionsEx mainVerticleDeploy,
-            @Autowired(required = false) @MainVerticle Verticle mainVerticle
+            @Main DeploymentOptionsEx mainVerticleDeploy,
+            @Autowired(required = false) @Main Verticle mainVerticle
     ) {
         return new AutoDeployer(applicationContext, vertx, vertxProps, mainVerticle, mainVerticleDeploy);
     }

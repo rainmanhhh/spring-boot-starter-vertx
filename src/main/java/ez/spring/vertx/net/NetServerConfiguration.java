@@ -1,5 +1,6 @@
 package ez.spring.vertx.net;
 
+import ez.spring.vertx.Main;
 import ez.spring.vertx.VertxConfiguration;
 import io.vertx.core.Vertx;
 import io.vertx.core.net.NetServer;
@@ -12,7 +13,7 @@ import org.springframework.context.annotation.*;
 @Import(VertxConfiguration.class)
 public class NetServerConfiguration {
     @Lazy
-    @ConditionalOnMissingBean(NetServerOptions.class)
+    @ConditionalOnMissingBean(value = NetServerOptions.class, annotation = Main.class)
     @ConfigurationProperties(VertxConfiguration.PREFIX + ".net-server")
     @Bean
     public NetServerOptions netServerOptions() {
@@ -20,7 +21,7 @@ public class NetServerConfiguration {
     }
 
     @Bean
-    @ConditionalOnMissingBean(NetServer.class)
+    @ConditionalOnMissingBean(value = NetServer.class, annotation = Main.class)
     @Scope(scopeName = "thread", proxyMode = ScopedProxyMode.INTERFACES)
     public NetServer netServer(Vertx vertx, NetServerOptions options) {
         return vertx.createNetServer(options);

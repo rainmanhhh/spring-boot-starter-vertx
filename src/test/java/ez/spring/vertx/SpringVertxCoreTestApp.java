@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 public class SpringVertxCoreTestApp extends AbstractVerticle {
     static String id = "";
 
-    @MainVerticle
+    @Main
     @Bean
     public Verticle mainVerticle() {
         return new SpringVertxCoreTestApp();

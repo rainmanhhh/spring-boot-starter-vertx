@@ -1,5 +1,6 @@
 package ez.spring.vertx.net;
 
+import ez.spring.vertx.Main;
 import ez.spring.vertx.VertxConfiguration;
 import io.vertx.core.Vertx;
 import io.vertx.core.net.NetClient;
@@ -12,7 +13,7 @@ import org.springframework.context.annotation.*;
 @Import(VertxConfiguration.class)
 public class NetClientConfiguration {
     @Lazy
-    @ConditionalOnMissingBean(NetClientOptions.class)
+    @ConditionalOnMissingBean(value = NetClientOptions.class, annotation = Main.class)
     @ConfigurationProperties(VertxConfiguration.PREFIX + ".net-client")
     @Bean
     public NetClientOptions netClientOptions() {
@@ -20,7 +21,7 @@ public class NetClientConfiguration {
     }
 
     @Bean
-    @ConditionalOnMissingBean(NetClient.class)
+    @ConditionalOnMissingBean(value = NetClient.class, annotation = Main.class)
     @Scope(scopeName = "thread", proxyMode = ScopedProxyMode.INTERFACES)
     public NetClient netClient(Vertx vertx, NetClientOptions options) {
         return vertx.createNetClient(options);
