@@ -18,14 +18,16 @@ public class HttpServerConfiguration {
     @Lazy
     @ConfigurationProperties(VertxConfiguration.PREFIX + ".http-server")
     @ConditionalOnMissingBean(value = HttpServerOptions.class, annotation = Main.class)
+    @Main
     @Bean
     public HttpServerOptions httpServerOptions() {
         return new HttpServerOptions().setPort(DEFAULT_PORT);
     }
 
-    @Bean
     @ConditionalOnMissingBean(value = HttpServer.class, annotation = Main.class)
     @Scope(scopeName = "thread", proxyMode = ScopedProxyMode.INTERFACES)
+    @Main
+    @Bean
     public HttpServer httpServer(Vertx vertx, HttpServerOptions options) {
         return vertx.createHttpServer(options);
     }

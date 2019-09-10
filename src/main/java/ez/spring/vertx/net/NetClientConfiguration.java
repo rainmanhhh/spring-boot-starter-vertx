@@ -15,14 +15,16 @@ public class NetClientConfiguration {
     @Lazy
     @ConditionalOnMissingBean(value = NetClientOptions.class, annotation = Main.class)
     @ConfigurationProperties(VertxConfiguration.PREFIX + ".net-client")
+    @Main
     @Bean
     public NetClientOptions netClientOptions() {
         return new NetClientOptions();
     }
 
-    @Bean
     @ConditionalOnMissingBean(value = NetClient.class, annotation = Main.class)
     @Scope(scopeName = "thread", proxyMode = ScopedProxyMode.INTERFACES)
+    @Main
+    @Bean
     public NetClient netClient(Vertx vertx, NetClientOptions options) {
         return vertx.createNetClient(options);
     }

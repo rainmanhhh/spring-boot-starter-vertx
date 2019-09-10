@@ -16,14 +16,16 @@ public class HttpClientConfiguration {
     @Lazy
     @ConditionalOnMissingBean(value = HttpClientOptions.class, annotation = Main.class)
     @ConfigurationProperties(VertxConfiguration.PREFIX + ".http-client")
+    @Main
     @Bean
     public HttpClientOptions httpClientOptions() {
         return new HttpClientOptions();
     }
 
-    @Bean
     @ConditionalOnMissingBean(value = HttpClient.class, annotation = Main.class)
     @Scope(scopeName = "thread", proxyMode = ScopedProxyMode.INTERFACES)
+    @Main
+    @Bean
     public HttpClient httpClient(Vertx vertx, HttpClientOptions options) {
         return vertx.createHttpClient(options);
     }
