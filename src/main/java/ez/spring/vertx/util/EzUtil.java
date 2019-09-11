@@ -1,7 +1,10 @@
 package ez.spring.vertx.util;
 
+import io.vertx.core.Context;
+import io.vertx.core.Vertx;
 import org.springframework.lang.Nullable;
 
+@SuppressWarnings("WeakerAccess")
 public class EzUtil {
     /**
      * null-safe version standard {@link Object#toString()}
@@ -26,5 +29,26 @@ public class EzUtil {
      */
     public static <P> ParameterizedTypes<P> parameterizedTypes(Class<P> parentClass, Class<? extends P> childClass) {
         return ParameterizedTypes.of(parentClass, childClass);
+    }
+
+    /**
+     *
+     * @return current thread context owner({@link Vertx}. null if current thread is not a vertx thread
+     */
+    @Nullable
+    public static Vertx vertxOrNull() {
+        Context context = Vertx.currentContext();
+        return context == null ? null : context.owner();
+    }
+
+    /**
+     *
+     * @return current thread context owner({@link Vertx}
+     * @throws IllegalStateException if current thread is not a vertx thread
+     */
+    public static Vertx vertx() {
+        Vertx v = vertxOrNull();
+        if (v == null) throw new IllegalStateException("current thread is not a vertx thread");
+        return v;
     }
 }
