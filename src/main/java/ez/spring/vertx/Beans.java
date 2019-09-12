@@ -9,6 +9,14 @@ import java.lang.annotation.Annotation;
 import java.util.*;
 
 public class Beans {
+    public static <T> BeanGetterFirstStep<T> withDescriptor(String descriptor) {
+        return new BeanGetter<>(descriptor);
+    }
+
+    public static <T> BeanGetterFirstStep<T> withType(Class<T> beanType) {
+        return new BeanGetter<>(beanType);
+    }
+
     public interface BeanGetterFinalStep<T> {
         T get();
 
@@ -113,13 +121,5 @@ public class Beans {
             beansOfType.keySet().retainAll(beansWithAnnotation.keySet());
             return beansOfType.values();
         }
-    }
-
-    public static <T> BeanGetterFirstStep<T> withDescriptor(String descriptor) {
-        return new BeanGetter<>(descriptor);
-    }
-
-    public static <T> BeanGetterFirstStep<T> withType(Class<T> beanType) {
-        return new BeanGetter<>(beanType);
     }
 }

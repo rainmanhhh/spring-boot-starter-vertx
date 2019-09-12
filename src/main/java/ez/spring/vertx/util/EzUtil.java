@@ -24,7 +24,7 @@ public class EzUtil {
      *
      * @param parentClass generic parent class
      * @param childClass  child class which has actual parameterized types
-     * @param <P> parent type
+     * @param <P>         parent type
      * @return actual parameterized types
      */
     public static <P> ParameterizedTypes<P> parameterizedTypes(Class<P> parentClass, Class<? extends P> childClass) {
@@ -32,7 +32,6 @@ public class EzUtil {
     }
 
     /**
-     *
      * @return current thread context owner({@link Vertx}. null if current thread is not a vertx thread
      */
     @Nullable
@@ -42,7 +41,6 @@ public class EzUtil {
     }
 
     /**
-     *
      * @return current thread context owner({@link Vertx}
      * @throws IllegalStateException if current thread is not a vertx thread
      */

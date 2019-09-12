@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 
+@SuppressWarnings("WeakerAccess")
 public class DeploymentOptionsEx extends DeploymentOptions {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private boolean enabled = true;
@@ -32,7 +33,7 @@ public class DeploymentOptionsEx extends DeploymentOptions {
 
     private EzJob<String> createJob(Vertx vertx, Object verticle) {
         String verticleStr = verticle instanceof String ? ((String) verticle) : EzUtil.toString(Objects.requireNonNull(verticle));
-        return EzJob.create(vertx,"deploy verticle " + verticleStr)
+        return EzJob.create(vertx, "deploy verticle " + verticleStr)
                 .addStep((Object o, Promise<String> p) -> {
                     if (verticle instanceof String) {
                         vertx.deployVerticle((String) verticle, this, p);

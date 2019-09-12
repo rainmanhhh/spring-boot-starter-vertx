@@ -45,10 +45,7 @@ public class AutoDeployer implements CommandLineRunner {
     }
 
     private Future<String> deployMainVerticle() {
-        if (!mainVerticleDeploy.isEnabled()) {
-            log.info("vertx.main-verticle.enabled is false. skip deploying MainVerticle");
-            return Future.succeededFuture();
-        } else {
+        if (mainVerticleDeploy.isEnabled()) {
             if (mainVerticle == null) {
                 log.info("MainVerticle bean is null. skip deploying MainVerticle");
                 mainVerticleDeploy.setEnabled(false);
@@ -56,6 +53,9 @@ public class AutoDeployer implements CommandLineRunner {
             } else {
                 return mainVerticleDeploy.deploy(vertx, mainVerticle);
             }
+        } else {
+            log.info("vertx.main-verticle.enabled is false. skip deploying MainVerticle");
+            return Future.succeededFuture();
         }
     }
 
@@ -71,17 +71,17 @@ public class AutoDeployer implements CommandLineRunner {
             // deploy verticles in the list one by one
             Future<String> future = Future.succeededFuture();
             for (VerticleDeploy verticleDeploy : allDeploys) {
-                if (!verticleDeploy.isEnabled()) {
+                if (verticleDeploy.isEnabled()) {
+                    String descriptor = verticleDeploy.getDescriptor();
+                    if (descriptor.contains(":")) {
+                        future = future.compose(o -> verticleDeploy.deploy(vertx, descriptor));
+                    } else {
+                        Verticle verticle = (Verticle) Beans.withDescriptor(descriptor).withQualifier(verticleDeploy.getBeanQualifier()).get();
+                        future = future.compose(o -> verticleDeploy.deploy(vertx, verticle));
+                    }
+                } else {
                     log.debug("skip disabled verticleDeploy, descriptor: {}, qualifier: {}",
                             verticleDeploy.getDescriptor(), verticleDeploy.getBeanQualifier());
-                    continue;
-                }
-                String descriptor = verticleDeploy.getDescriptor();
-                if (descriptor.contains(":")) {
-                    future = future.compose(o -> verticleDeploy.deploy(vertx, descriptor));
-                } else {
-                    Verticle verticle = (Verticle) Beans.withDescriptor(descriptor).withQualifier(verticleDeploy.getBeanQualifier()).get();
-                    future = future.compose(o -> verticleDeploy.deploy(vertx, verticle));
                 }
             }
             return future;

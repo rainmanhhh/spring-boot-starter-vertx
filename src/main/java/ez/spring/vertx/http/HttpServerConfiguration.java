@@ -18,6 +18,7 @@ public class HttpServerConfiguration {
 
     /**
      * default port is {@link #DEFAULT_PORT}
+     *
      * @return default http server options
      */
     @Lazy

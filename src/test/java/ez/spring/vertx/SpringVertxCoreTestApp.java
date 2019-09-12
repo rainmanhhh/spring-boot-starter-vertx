@@ -12,14 +12,14 @@ import java.util.concurrent.TimeUnit;
 public class SpringVertxCoreTestApp extends AbstractVerticle {
     static String id = "";
 
+    public static void main(String[] args) {
+        SpringApplication.run(SpringVertxCoreTestApp.class);
+    }
+
     @Main
     @Bean
     public Verticle mainVerticle() {
         return new SpringVertxCoreTestApp();
-    }
-
-    public static void main(String[] args) {
-        SpringApplication.run(SpringVertxCoreTestApp.class);
     }
 
     @Override
