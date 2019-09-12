@@ -80,7 +80,7 @@ public class AutoDeployer implements CommandLineRunner {
                 if (descriptor.contains(":")) {
                     future = future.compose(o -> verticleDeploy.deploy(vertx, descriptor));
                 } else {
-                    Verticle verticle = Beans.get(descriptor, verticleDeploy.getBeanQualifier());
+                    Verticle verticle = (Verticle) Beans.withDescriptor(descriptor).withQualifier(verticleDeploy.getBeanQualifier()).get();
                     future = future.compose(o -> verticleDeploy.deploy(vertx, verticle));
                 }
             }
