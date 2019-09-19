@@ -1,7 +1,6 @@
 package ez.spring.vertx;
 
 import ez.spring.vertx.deploy.AutoDeployer;
-import ez.spring.vertx.deploy.DeploymentOptionsEx;
 import io.vertx.core.Verticle;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
@@ -97,13 +96,6 @@ public class VertxConfiguration {
         return null;
     }
 
-    @Main
-    @ConfigurationProperties(PREFIX + ".main-verticle")
-    @Bean
-    public DeploymentOptionsEx mainVerticleDeploy() {
-        return new DeploymentOptionsEx();
-    }
-
     @Nullable
     @ConditionalOnMissingBean(value = Verticle.class, annotation = Main.class)
     @Main
@@ -113,14 +105,8 @@ public class VertxConfiguration {
     }
 
     @Bean
-    public AutoDeployer autoDeployer(
-            ApplicationContext applicationContext,
-            Vertx vertx,
-            VertxProps vertxProps,
-            @Main DeploymentOptionsEx mainVerticleDeploy,
-            @Autowired(required = false) @Main Verticle mainVerticle
-    ) {
-        return new AutoDeployer(applicationContext, vertx, vertxProps, mainVerticle, mainVerticleDeploy);
+    public AutoDeployer autoDeployer(Vertx vertx, VertxProps vertxProps) {
+        return new AutoDeployer(vertx, vertxProps);
     }
 
     @Bean
