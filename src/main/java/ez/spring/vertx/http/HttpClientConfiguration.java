@@ -15,8 +15,8 @@ import org.springframework.context.annotation.Lazy;
 @ConditionalOnMissingBean(HttpClientOptions.class)
 public class HttpClientConfiguration {
     @Lazy
-    @ConditionalOnMissingBean(value = HttpClientOptions.class, annotation = Main.class)
     @ConfigurationProperties(VertxConfiguration.PREFIX + ".http-client")
+    @ConditionalOnMissingBean(value = HttpClientOptions.class, annotation = Main.class)
     @Main
     @Bean
     public HttpClientOptions httpClientOptions() {

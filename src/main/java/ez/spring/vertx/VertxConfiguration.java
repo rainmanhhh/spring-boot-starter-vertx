@@ -1,7 +1,6 @@
 package ez.spring.vertx;
 
 import ez.spring.vertx.deploy.AutoDeployer;
-import io.vertx.core.Verticle;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.file.FileSystem;
@@ -19,6 +18,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.Nullable;
 
+import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -27,7 +27,8 @@ import java.util.concurrent.TimeoutException;
 @Configuration
 public class VertxConfiguration {
     public static final String PREFIX = "vertx";
-    private static ApplicationContext applicationContext;
+    private static ApplicationContext applicationContext = null;
+    private static ActiveProfiles activeProfiles = null;
 
     static {
         final String LOGGER_DELEGATE_KEY = "vertx.logger-delegate-factory-class-name";
@@ -39,13 +40,18 @@ public class VertxConfiguration {
 
     public VertxConfiguration(ApplicationContext applicationContext) {
         VertxConfiguration.applicationContext = applicationContext;
-        ActiveProfiles.createInstance(applicationContext);
     }
 
     public static ApplicationContext getApplicationContext() {
-        if (applicationContext == null)
-            throw new NullPointerException("VertxConfiguration.applicationContext not init yet");
-        return applicationContext;
+        ApplicationContext value = applicationContext;
+        if (value == null) throw new RuntimeException("applicationContext not set yet");
+        return value;
+    }
+
+    public static ActiveProfiles getActiveProfiles() {
+        ActiveProfiles value = activeProfiles;
+        if (value == null) throw new RuntimeException("activeProfiles not set yet");
+        return value;
     }
 
     @Bean
@@ -54,7 +60,7 @@ public class VertxConfiguration {
         if (vertxProps.getEventBusOptions().isClustered()) {
             CompletableFuture<Vertx> future = new CompletableFuture<>();
             log.info("waiting vertx join to cluster...");
-            Vertx.clusteredVertx(vertxProps, EzPromise.promise(future));
+            Vertx.clusteredVertx(vertxProps, EzPromise.fromCompletableFuture(future));
             long clusterJoinTimeout = vertxProps.getClusterJoinTimeout();
             vertx = clusterJoinTimeout > 0 ?
                     future.get(clusterJoinTimeout, TimeUnit.MILLISECONDS) : future.get();
@@ -63,17 +69,25 @@ public class VertxConfiguration {
         return vertx;
     }
 
+    @Bean
+    public ActiveProfiles activeProfiles(ApplicationContext ac) {
+        ActiveProfiles value = new ActiveProfiles(Arrays.asList(ac.getEnvironment().getActiveProfiles()));
+        VertxConfiguration.activeProfiles = value;
+        return value;
+    }
+
     @ConfigurationProperties(PREFIX)
-    @ConditionalOnMissingBean(VertxProps.class)
+    @ConditionalOnMissingBean
     @Bean
     public VertxProps vertxProps(
+            ActiveProfiles activeProfiles,
             @Autowired(required = false) ClusterManager clusterManager,
             @Autowired(required = false) VertxMetricsFactory metricsFactory
     ) {
         VertxProps vertxProps = new VertxProps();
         if (clusterManager != null) vertxProps.setClusterManager(clusterManager);
         if (metricsFactory != null) vertxProps.getMetricsOptions().setFactory(metricsFactory);
-        if (ActiveProfiles.getInstance().isDev()) { // use large timeout for development
+        if (activeProfiles.isDev()) { // use large timeout for development
             vertxProps
                     .setMaxEventLoopExecuteTime(2_000_000_000_000_000L) // 2 million seconds
                     .setMaxWorkerExecuteTime(60_000_000_000_000_000L) // 60 million seconds
@@ -83,24 +97,16 @@ public class VertxConfiguration {
     }
 
     @Nullable
-    @ConditionalOnMissingBean(ClusterManager.class)
+    @ConditionalOnMissingBean
     @Bean
     public ClusterManager clusterManager() {
         return null;
     }
 
     @Nullable
-    @ConditionalOnMissingBean(VertxMetricsFactory.class)
+    @ConditionalOnMissingBean
     @Bean
     public VertxMetricsFactory metricsFactory() {
-        return null;
-    }
-
-    @Nullable
-    @ConditionalOnMissingBean(value = Verticle.class, annotation = Main.class)
-    @Main
-    @Bean
-    public Verticle mainVerticle() {
         return null;
     }
 

@@ -24,12 +24,16 @@ class AutoDeployer(
 
     private suspend fun deployVerticles(): Int {
         // merge VerticleDeploy beans & VerticleDeploy configList(sort by order)
-        val beans = Beans.withType(VerticleDeploy::class.java).getBeans()
+        val beans = Beans.withType(VerticleDeploy::class.java).getBeanMap().values
         val configList: List<VerticleDeploy> = vertxProps.verticles
         val allDeploys = (beans + configList).toMutableList()
         allDeploys.sortWith(Comparator.comparingInt { obj: VerticleDeploy -> obj.order })
         // annotated Verticle beans(non-ordered)
-        val annotatedDeploys = Beans.withType(Verticle::class.java).withQualifierType(AutoDeploy::class.java).getBeans().map {
+        val annotatedDeploys = Beans.withType(
+                Verticle::class.java
+        ).withQualifierType(
+                AutoDeploy::class.java
+        ).getBeans().map {
             VerticleDeploy().setDescriptor(it.javaClass.canonicalName)
         }
         allDeploys += annotatedDeploys
@@ -60,11 +64,12 @@ class AutoDeployer(
     }
 
     override fun run(vararg args: String) = runBlocking {
+        log.info("auto deploy start")
         val count = deployVerticles()
         if (count < 1) {
-            log.warn("no enabled mainVerticle, no configured verticles")
+            log.warn("auto deploy finish. no configured VerticleDeploy beans or @AutoDeploy annotated verticles")
         } else {
-            log.info("auto deploy finish, {} verticle(s) deployed", count)
+            log.info("auto deploy finish. {} verticle(s) deployed", count)
         }
     }
 }

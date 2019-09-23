@@ -7,8 +7,9 @@ import io.vertx.core.Vertx;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
+@SuppressWarnings("WeakerAccess")
 public class EzPromise {
-    public static <T> Promise<T> promise(CompletableFuture<T> future) {
+    public static <T> Promise<T> fromCompletableFuture(CompletableFuture<T> future) {
         Promise<T> promise = Promise.promise();
         future.whenComplete((value, err) -> {
             if (future.isCompletedExceptionally()) promise.fail(err);
@@ -25,7 +26,7 @@ public class EzPromise {
      * @return wrapped jdk future
      * @throws CompletionException if future failed
      */
-    public static <T> CompletableFuture completableFuture(Future<T> future) throws CompletionException {
+    public static <T> CompletableFuture toCompletableFuture(Future<T> future) throws CompletionException {
         CompletableFuture<T> completableFuture = new CompletableFuture<>();
         future.setHandler(event -> {
             if (event.succeeded()) completableFuture.complete(event.result());

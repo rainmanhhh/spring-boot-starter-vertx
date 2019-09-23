@@ -14,8 +14,8 @@ import org.springframework.context.annotation.Lazy;
 @Import(VertxConfiguration.class)
 public class NetClientConfiguration {
     @Lazy
-    @ConditionalOnMissingBean(value = NetClientOptions.class, annotation = Main.class)
     @ConfigurationProperties(VertxConfiguration.PREFIX + ".net-client")
+    @ConditionalOnMissingBean(value = NetClientOptions.class, annotation = Main.class)
     @Main
     @Bean
     public NetClientOptions netClientOptions() {

@@ -1,12 +1,15 @@
 package ez.spring.vertx.util
 
-import io.vertx.core.Context
+import ez.spring.vertx.ActiveProfiles
+import ez.spring.vertx.VertxConfiguration
 import io.vertx.core.Promise
 import io.vertx.core.Vertx
 import io.vertx.kotlin.coroutines.dispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.slf4j.MDCContext
+import org.springframework.context.ApplicationContext
+import org.springframework.lang.Nullable
 
 @Suppress("MemberVisibilityCanBePrivate")
 object EzUtil {
@@ -17,7 +20,7 @@ object EzUtil {
      * @return `class@hashcode` of the object
      */
     @JvmStatic
-    fun toString(o: Any?): String {
+    fun toString(@Nullable o: Any?): String {
         return if (o == null) "null" else o.javaClass.canonicalName + "@" + Integer.toHexString(o.hashCode())
     }
 
@@ -41,9 +44,9 @@ object EzUtil {
      * @return current thread context owner([Vertx]. null if current thread is not a vertx thread
      */
     @JvmStatic
+    @Nullable
     fun vertxOrNull(): Vertx? {
-        val context: Context? = Vertx.currentContext()
-        return context?.owner()
+        return Vertx.currentContext()?.owner()
     }
 
     /**
@@ -59,6 +62,11 @@ object EzUtil {
      * create a coroutine scope with mdc(copy values from current thread)
      */
     fun mdcScope(): CoroutineScope = CoroutineScope(vertx().dispatcher() + MDCContext())
+
+    @get:JvmStatic
+    val applicationContext: ApplicationContext = VertxConfiguration.getApplicationContext()
+    @get:JvmStatic
+    val activeProfiles: ActiveProfiles = VertxConfiguration.getActiveProfiles()
 }
 
 @Suppress("EXPERIMENTAL_API_USAGE")

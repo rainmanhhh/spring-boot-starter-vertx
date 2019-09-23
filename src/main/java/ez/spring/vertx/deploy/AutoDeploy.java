@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import java.lang.annotation.*;
 
 /**
- * qualifier for `default` bean such as Verticle, HttpServer, SqlClient.
+ * qualifier for auto deploy verticles. if you want to set deploy options, use VerticleDeploy bean instead.
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

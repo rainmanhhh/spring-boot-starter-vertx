@@ -11,6 +11,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+@SuppressWarnings("UnusedReturnValue")
 public class EzJob<F> {
     private static final Logger log = LoggerFactory.getLogger(EzJob.class);
     private static final ThreadLocal<Long> tlId = ThreadLocal.withInitial(() -> 0L);
@@ -34,7 +35,7 @@ public class EzJob<F> {
         tlId.set(id);
         Promise<P> starter = Promise.promise();
         String idStr = Thread.currentThread().getId() + "-" + id;
-        return new EzJob<P>(vertx, idStr, jobName, starter, starter.future());
+        return new EzJob<>(vertx, idStr, jobName, starter, starter.future());
     }
 
     /**
@@ -114,7 +115,7 @@ public class EzJob<F> {
      */
     public F startSyncWait(long milliseconds) throws CompletionException {
         //noinspection unchecked
-        return (F) EzPromise.completableFuture(
+        return (F) EzPromise.toCompletableFuture(
                 start(milliseconds).future()
         ).join();
     }
@@ -128,7 +129,7 @@ public class EzJob<F> {
     public F startSyncWait() throws CompletionException {
         log.info("waiting sync job: [{}]", name);
         //noinspection unchecked
-        return (F) EzPromise.completableFuture(
+        return (F) EzPromise.toCompletableFuture(
                 start().future()
         ).join();
     }

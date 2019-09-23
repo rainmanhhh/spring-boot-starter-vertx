@@ -1,7 +1,5 @@
 package ez.spring.vertx.util;
 
-import ez.spring.vertx.VertxConfiguration;
-
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Objects;
@@ -37,7 +35,7 @@ public class ParameterizedTypes<P> {
     @SuppressWarnings("unchecked")
     public <T> Class<T> get(int index) {
         String requestTypeName = actualTypeArguments[index].getTypeName();
-        ClassLoader classLoader = Objects.requireNonNull(VertxConfiguration.getApplicationContext().getClassLoader());
+        ClassLoader classLoader = Objects.requireNonNull(EzUtil.getApplicationContext().getClassLoader());
         try {
             return (Class<T>) classLoader.loadClass(requestTypeName);
         } catch (ClassNotFoundException e) {
