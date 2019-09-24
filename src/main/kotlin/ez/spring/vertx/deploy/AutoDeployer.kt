@@ -1,7 +1,6 @@
 package ez.spring.vertx.deploy
 
 import ez.spring.vertx.Beans
-import ez.spring.vertx.Main
 import ez.spring.vertx.VertxProps
 import io.vertx.core.DeploymentOptions
 import io.vertx.core.Verticle
@@ -17,8 +16,8 @@ import java.util.*
 import java.util.function.Supplier
 
 /**
- * auto deploy mainVerticle(bean of class [Verticle] with qualifier annotation [Main])
- * and verticles defined in application config file(prefix=vertx.verticles)
+ * auto deploy [SpringBootApplication] if it's a Verticle.
+ * auto deploy verticles defined in application config file(prefix=vertx.verticles)
  */
 class AutoDeployer(
         private val vertx: Vertx,
