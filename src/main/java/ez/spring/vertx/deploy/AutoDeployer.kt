@@ -3,14 +3,18 @@ package ez.spring.vertx.deploy
 import ez.spring.vertx.Beans
 import ez.spring.vertx.Main
 import ez.spring.vertx.VertxProps
+import io.vertx.core.DeploymentOptions
 import io.vertx.core.Verticle
 import io.vertx.core.Vertx
 import io.vertx.kotlin.core.deployVerticleAwait
-import kotlinx.coroutines.runBlocking
+import io.vertx.kotlin.coroutines.dispatcher
+import kotlinx.coroutines.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.boot.CommandLineRunner
+import org.springframework.boot.autoconfigure.SpringBootApplication
 import java.util.*
+import java.util.function.Supplier
 
 /**
  * auto deploy mainVerticle(bean of class [Verticle] with qualifier annotation [Main])
@@ -24,43 +28,63 @@ class AutoDeployer(
 
     private suspend fun deployVerticles(): Int {
         // merge VerticleDeploy beans & VerticleDeploy configList(sort by order)
-        val beans = Beans.withType(VerticleDeploy::class.java).getBeanMap().values
+        // 1.VerticleDeploy configList
+        val beans = Beans.withType(VerticleDeploy::class.java).getBeans()
         val configList: List<VerticleDeploy> = vertxProps.verticles
         val allDeploys = (beans + configList).toMutableList()
         allDeploys.sortWith(Comparator.comparingInt { obj: VerticleDeploy -> obj.order })
-        // annotated Verticle beans(non-ordered)
-        val annotatedDeploys = Beans.withType(
-                Verticle::class.java
-        ).withQualifierType(
-                AutoDeploy::class.java
-        ).getBeans().map {
-            VerticleDeploy().setDescriptor(it.javaClass.canonicalName)
+        // 2.annotated Verticle beans(non-ordered)
+        // 2.1.SpringBootApplication(if it's a Verticle)
+        val map1 = Beans.withType(Verticle::class.java).withQualifierType(SpringBootApplication::class.java).getBeanMap()
+        // 2.2.AutoDeploy
+        val map2 = Beans.withType(Verticle::class.java).withQualifierType(AutoDeploy::class.java).getBeanMap()
+        // merge
+        val m = map1 + map2
+        val annotatedDeploys = m.map {
+            VerticleDeploy().setDescriptor(it.key)
         }
         allDeploys += annotatedDeploys
         // deploy verticles in the list one by one
         var deployedCount = 0
-        for (verticleDeploy in allDeploys) {
-            if (verticleDeploy.isEnabled) {
-                val descriptor: String = verticleDeploy.descriptor
+        // verticles with order 0
+        val jobList: MutableList<Job> = mutableListOf()
+        for (vd in allDeploys) {
+            if (vd.isEnabled) {
+                val descriptor: String = vd.descriptor
                 if (descriptor.contains(":")) { // verticle descriptor
-                    vertx.deployVerticleAwait(descriptor, verticleDeploy)
+                    if (vd.order == 0) jobList += deployJob(descriptor, vd)
+                    else vertx.deployVerticleAwait(descriptor, vd)
                 } else { // bean name or class name
                     val provider = Beans.withDescriptor<Verticle>(
                             descriptor
                     ).withQualifier(
-                            verticleDeploy.beanQualifier
+                            vd.beanQualifier
                     ).getFirstProvider()
-                    vertx.deployVerticleAwait(provider, verticleDeploy)
+                    if (vd.order == 0) jobList += deployJob(provider, vd)
+                    else vertx.deployVerticleAwait(provider, vd)
                 }
                 deployedCount++
                 log.debug("deployed verticle, descriptor: {}, qualifier: {}",
-                        verticleDeploy.descriptor, verticleDeploy.beanQualifier)
+                        vd.descriptor, vd.beanQualifier)
             } else {
                 log.debug("skip disabled verticleDeploy, descriptor: {}, qualifier: {}",
-                        verticleDeploy.descriptor, verticleDeploy.beanQualifier)
+                        vd.descriptor, vd.beanQualifier)
             }
         }
+        jobList.joinAll()
         return deployedCount
+    }
+
+    private fun deployJob(descriptor: String, options: DeploymentOptions): Job {
+        return GlobalScope.launch(vertx.dispatcher()) {
+            vertx.deployVerticleAwait(descriptor, options)
+        }
+    }
+
+    private fun deployJob(supplier: Supplier<Verticle>, options: DeploymentOptions): Job {
+        return GlobalScope.launch(vertx.dispatcher()) {
+            vertx.deployVerticleAwait(supplier, options)
+        }
     }
 
     override fun run(vararg args: String) = runBlocking {

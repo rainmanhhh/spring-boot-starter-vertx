@@ -89,6 +89,12 @@ object Beans {
             return this
         }
 
+        private fun getBeanName(): String? {
+            if (descriptor == null) return null
+            return if (context.containsBeanDefinition(descriptor)) descriptor
+            else null
+        }
+
         private fun getBeanType(): Class<out T>? {
             return getType(beanType, descriptor)
         }
@@ -109,6 +115,12 @@ object Beans {
 
         @Suppress("UNCHECKED_CAST")
         override fun getProvider(): Supplier<Map<String, T>> {
+            val beanName = getBeanName()
+            if (beanName != null) {
+                return Supplier {
+                    mapOf(beanName to context.getBean(beanName) as T)
+                }
+            }
             val beanType = getBeanType()
             val qualifierType = getQualifierType()
             if (beanType == null) throw RuntimeException("bean not specified")

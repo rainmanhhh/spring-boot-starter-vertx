@@ -1,13 +1,11 @@
 package ez.spring.vertx
 
-import ez.spring.vertx.deploy.AutoDeploy
 import io.vertx.core.AbstractVerticle
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.annotation.Bean
 import java.util.concurrent.TimeUnit
 
-@AutoDeploy
 @SpringBootApplication
 class SpringVertxCoreTestApp : AbstractVerticle() {
     override fun start() {
