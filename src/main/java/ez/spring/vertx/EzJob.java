@@ -9,7 +9,9 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 @SuppressWarnings("UnusedReturnValue")
 public class EzJob<F> {
@@ -38,6 +40,10 @@ public class EzJob<F> {
         return new EzJob<>(vertx, idStr, jobName, starter, starter.future());
     }
 
+    public static <P> EzJob<P> create(Vertx vertx) {
+        return create(vertx, "");
+    }
+
     /**
      * add a step to job chain
      *
@@ -45,8 +51,12 @@ public class EzJob<F> {
      * @param <R>    next future type
      * @return a new job object with added step
      */
-    public <R> EzJob<R> addStep(Function<F, Future<R>> action) {
+    public <R> EzJob<R> thenCompose(Function<F, Future<R>> action) {
         return new EzJob<>(vertx, id, name, starter, future.compose(action));
+    }
+
+    public <R> EzJob<R> thenSupply(Supplier<Future<R>> supplier) {
+        return new EzJob<>(vertx, id, name, starter, future.compose(r -> supplier.get()));
     }
 
     /**
@@ -56,10 +66,18 @@ public class EzJob<F> {
      * @param <T>    next step promise(starter) type. eg: in `Vertx.clusteredVertx(options, p)` T is Vertx
      * @return a new job object with added step
      */
-    public <T> EzJob<T> addStep(BiConsumer<F, Promise<T>> action) {
-        return addStep((F f) -> {
+    public <T> EzJob<T> then(BiConsumer<F, Promise<T>> action) {
+        return thenCompose((F f) -> {
             Promise<T> p = Promise.promise();
             action.accept(f, p);
+            return p.future();
+        });
+    }
+
+    public <T> EzJob<T> then(Consumer<Promise<T>> action) {
+        return thenCompose((F f) -> {
+            Promise<T> p = Promise.promise();
+            action.accept(p);
             return p.future();
         });
     }
@@ -107,13 +125,13 @@ public class EzJob<F> {
     }
 
     /**
-     * start job with timeout
+     * start job and wait with timeout
      *
      * @param milliseconds wait time. less than or equals to 0 means never timeout
      * @return last step result
      * @throws CompletionException any step failed
      */
-    public F startSyncWait(long milliseconds) throws CompletionException {
+    public F join(long milliseconds) throws CompletionException {
         //noinspection unchecked
         return (F) EzPromise.toCompletableFuture(
                 start(milliseconds).future()
@@ -121,12 +139,12 @@ public class EzJob<F> {
     }
 
     /**
-     * start job without timeout
+     * start job and wait without timeout
      *
      * @return last step result
      * @throws CompletionException any step failed
      */
-    public F startSyncWait() throws CompletionException {
+    public F join() throws CompletionException {
         log.info("waiting sync job: [{}]", name);
         //noinspection unchecked
         return (F) EzPromise.toCompletableFuture(

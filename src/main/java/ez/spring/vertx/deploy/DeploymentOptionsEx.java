@@ -34,7 +34,7 @@ public class DeploymentOptionsEx extends DeploymentOptions {
     private EzJob<String> createJob(Vertx vertx, Object verticle) {
         String verticleStr = verticle instanceof String ? ((String) verticle) : EzUtil.toString(Objects.requireNonNull(verticle));
         return EzJob.create(vertx, "deploy verticle " + verticleStr)
-                .addStep((Object o, Promise<String> p) -> {
+                .then((Object o, Promise<String> p) -> {
                     if (verticle instanceof String) {
                         vertx.deployVerticle((String) verticle, this, p);
                     } else if (verticle instanceof Verticle) {
@@ -43,7 +43,7 @@ public class DeploymentOptionsEx extends DeploymentOptions {
                         p.fail("param `verticle` should be String or Verticle, but actually: " + verticle.getClass().getCanonicalName());
                     }
                 })
-                .addStep(deploymentId -> {
+                .thenCompose(deploymentId -> {
                     log.info("deploy verticle success: [{}], id={}", verticleStr, deploymentId);
                     return Promise.succeededPromise(deploymentId).future();
                 });
@@ -54,7 +54,7 @@ public class DeploymentOptionsEx extends DeploymentOptions {
     }
 
     private String doDeploySync(Vertx vertx, Object verticle) {
-        return createJob(vertx, verticle).startSyncWait(getTimeout());
+        return createJob(vertx, verticle).join(getTimeout());
     }
 
     public Future<String> deploy(Vertx vertx, Verticle verticle) {

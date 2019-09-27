@@ -2,7 +2,6 @@ package ez.spring.vertx;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -33,13 +32,5 @@ public class EzPromise {
             else completableFuture.completeExceptionally(event.cause());
         });
         return completableFuture;
-    }
-
-    public static <T> Promise<T> setTimeout(Promise<T> promise, Vertx vertx, long milliseconds, String jobName) {
-        return EzJob.create(vertx, jobName).addStep(o -> promise.future()).start(milliseconds);
-    }
-
-    public static <T> Promise<T> setTimeout(Promise<T> promise, Vertx vertx, long milliseconds) {
-        return setTimeout(promise, vertx, milliseconds, "");
     }
 }
