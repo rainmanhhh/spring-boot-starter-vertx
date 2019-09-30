@@ -50,7 +50,7 @@ public class DeploymentOptionsEx extends DeploymentOptions {
     }
 
     private Future<String> doDeployAsync(Vertx vertx, Object verticle) {
-        return createJob(vertx, verticle).start().future();
+        return createJob(vertx, verticle).start(getTimeout()).future();
     }
 
     private String doDeploySync(Vertx vertx, Object verticle) {
