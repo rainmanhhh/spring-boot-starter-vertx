@@ -43,9 +43,9 @@ public class DeploymentOptionsEx extends DeploymentOptions {
                         p.fail("param `verticle` should be String or Verticle, but actually: " + verticle.getClass().getCanonicalName());
                     }
                 })
-                .thenCompose(deploymentId -> {
+                .thenMap(deploymentId -> {
                     log.info("deploy verticle success: [{}], id={}", verticleStr, deploymentId);
-                    return Promise.succeededPromise(deploymentId).future();
+                    return deploymentId;
                 });
     }
 

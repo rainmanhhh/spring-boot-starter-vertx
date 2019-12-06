@@ -45,7 +45,8 @@ public class AutoDeployer implements CommandLineRunner {
         ));
         // deploy verticles in the list one by one
         int deployedCount = 0;
-        // verticles with order 0
+        // verticles with order=0
+        @SuppressWarnings("rawtypes")
         List<Future> jobList = new ArrayList<>();
         for (VerticleDeploy vd : allDeploys) {
             if (vd.isEnabled()) {
@@ -74,14 +75,6 @@ public class AutoDeployer implements CommandLineRunner {
         }
         createJob().thenSupply(() -> CompositeFuture.all(jobList)).join();
         return deployedCount;
-    }
-
-    private EzJob<String> deployJob(String descriptor, DeploymentOptions options) {
-        return createJob().then(p -> vertx.deployVerticle(descriptor, options, p));
-    }
-
-    private EzJob<String> deployJob(Supplier<Verticle> supplier, DeploymentOptions options) {
-        return createJob().then(p -> vertx.deployVerticle(supplier, options, p));
     }
 
     private <T> EzJob<T> createJob() {

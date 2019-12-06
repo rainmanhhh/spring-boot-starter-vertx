@@ -47,12 +47,23 @@ public class EzJob<F> {
     /**
      * add a step to job chain
      *
-     * @param action function receives last step result and returns next future
+     * @param composer function receives last step result and returns next future
      * @param <R>    next future type
      * @return a new job object with added step
      */
-    public <R> EzJob<R> thenCompose(Function<F, Future<R>> action) {
-        return new EzJob<>(vertx, id, name, starter, future.compose(action));
+    public <R> EzJob<R> thenCompose(Function<F, Future<R>> composer) {
+        return new EzJob<>(vertx, id, name, starter, future.compose(composer));
+    }
+
+    /**
+     * add a step to job chain
+     *
+     * @param mapper function receives last step result and returns next future value
+     * @param <R>    next future type
+     * @return a new job object with added step
+     */
+    public <R> EzJob<R> thenMap(Function<F, R> mapper) {
+        return new EzJob<>(vertx, id, name, starter, future.map(mapper));
     }
 
     public <R> EzJob<R> thenSupply(Supplier<Future<R>> supplier) {
@@ -132,8 +143,7 @@ public class EzJob<F> {
      * @throws CompletionException any step failed
      */
     public F join(long milliseconds) throws CompletionException {
-        //noinspection unchecked
-        return (F) EzPromise.toCompletableFuture(
+        return EzPromise.toCompletableFuture(
                 start(milliseconds).future()
         ).join();
     }
@@ -146,8 +156,7 @@ public class EzJob<F> {
      */
     public F join() throws CompletionException {
         log.info("waiting sync job: [{}]", name);
-        //noinspection unchecked
-        return (F) EzPromise.toCompletableFuture(
+        return EzPromise.toCompletableFuture(
                 start().future()
         ).join();
     }

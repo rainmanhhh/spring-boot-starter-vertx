@@ -25,7 +25,7 @@ public class EzPromise {
      * @return wrapped jdk future
      * @throws CompletionException if future failed
      */
-    public static <T> CompletableFuture toCompletableFuture(Future<T> future) throws CompletionException {
+    public static <T> CompletableFuture<T> toCompletableFuture(Future<T> future) throws CompletionException {
         CompletableFuture<T> completableFuture = new CompletableFuture<>();
         future.setHandler(event -> {
             if (event.succeeded()) completableFuture.complete(event.result());
