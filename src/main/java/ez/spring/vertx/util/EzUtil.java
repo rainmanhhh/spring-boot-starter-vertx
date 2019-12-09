@@ -5,7 +5,7 @@ import ez.spring.vertx.VertxConfiguration;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import org.springframework.context.ApplicationContext;
-import org.springframework.lang.Nullable;
+import javax.annotation.Nullable;
 
 @SuppressWarnings("WeakerAccess")
 public class EzUtil {

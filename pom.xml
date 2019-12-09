@@ -8,7 +8,7 @@
   <parent>
     <artifactId>spring-boot-starter-vertx-parent</artifactId>
     <groupId>com.github.rainmanhhh</groupId>
-    <version>0.0.14</version>
+    <version>0.0.15</version>
     <!--suppress MavenModelInspection -->
     <relativePath>../spring-boot-starter-vertx-parent/pom.xml</relativePath>
   </parent>

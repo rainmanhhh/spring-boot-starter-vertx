@@ -22,7 +22,7 @@ public class SpringVertxCoreTests {
     @Timed(millis = 3000)
     @Test
     public void undeployMainVerticle() {
-        EzJob.create(vertx).<Void>then(p -> vertx.undeploy(SpringVertxCoreTestApp.id, p)).join();
+        EzJob.create(vertx, "undeployMainVerticle").<Void>then(p -> vertx.undeploy(SpringVertxCoreTestApp.id, p)).join();
     }
 
     @Timed(millis = 3000)

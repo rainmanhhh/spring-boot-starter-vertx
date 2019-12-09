@@ -1,15 +1,13 @@
 package ez.spring.vertx.http;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
-
-import ez.spring.vertx.VertxConfiguration;
 import io.vertx.core.http.HttpServerOptions;
 
-@Component
-@ConfigurationProperties(VertxConfiguration.PREFIX + ".http-server")
 public class MainHttpServerOptions extends HttpServerOptions {
-    private int port = 8999;
+    public static final int DEFAULT_PORT = 8999;
+    /**
+     * use spring ServerProperties.port as default value(if it's null or less than 0, fallback to {@link #DEFAULT_PORT})
+     */
+    private int port;
 
     @Override
     public int getPort() {
@@ -19,7 +17,6 @@ public class MainHttpServerOptions extends HttpServerOptions {
     @Override
     public MainHttpServerOptions setPort(int port) {
         this.port = port;
-        super.setPort(port);
         return this;
     }
 }

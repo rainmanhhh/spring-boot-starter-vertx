@@ -31,18 +31,16 @@ public class AutoDeployer implements CommandLineRunner {
         allDeploys.addAll(beans);
         allDeploys.addAll(configList);
         allDeploys.sort(Comparator.comparingInt((DeploymentOptionsEx::getOrder)));
-        // 2.annotated Verticle beans(non-ordered)
+        // 2.annotated Verticle beans todo: read @Ordered value
         // 2.1.SpringBootApplication(if it's a Verticle)
-        Map<String, ? extends Verticle> map1 = Beans.withType(Verticle.class).withQualifierType(SpringBootApplication.class).getBeanMap();
+        Map<String, ? extends Verticle> map1 = Beans.withType(Verticle.class).withQualifier(SpringBootApplication.class).getBeanMap();
         // 2.2.AutoDeploy
-        Map<String, ? extends Verticle> map2 = Beans.withType(Verticle.class).withQualifierType(AutoDeploy.class).getBeanMap();
+        Map<String, ? extends Verticle> map2 = Beans.withType(Verticle.class).withQualifier(AutoDeploy.class).getBeanMap();
         // merge
         Map<String, Verticle> m = new HashMap<>();
         m.putAll(map1);
         m.putAll(map2);
-        m.forEach((beanName, verticle) -> allDeploys.add(
-                new VerticleDeploy().setDescriptor(beanName)
-        ));
+        m.forEach((beanName, verticle) -> allDeploys.add(new VerticleDeploy().setDescriptor(beanName)));
         // deploy verticles in the list one by one
         int deployedCount = 0;
         // verticles with order=0
@@ -51,8 +49,9 @@ public class AutoDeployer implements CommandLineRunner {
         for (VerticleDeploy vd : allDeploys) {
             if (vd.isEnabled()) {
                 String descriptor = vd.getDescriptor();
+                String jobName = "deploy verticle " + descriptor;
                 if (descriptor.contains(":")) { // verticle descriptor
-                    EzJob<String> job = createJob().then(p -> vertx.deployVerticle(descriptor, vd, p));
+                    EzJob<String> job = createJob(jobName).then(p -> vertx.deployVerticle(descriptor, vd, p));
                     if (vd.getOrder() == 0) jobList.add(job.start().future());
                     else job.join();
                 } else { // bean name or class name
@@ -61,7 +60,7 @@ public class AutoDeployer implements CommandLineRunner {
                     ).withQualifier(
                             vd.getBeanQualifier()
                     ).getFirstProvider();
-                    EzJob<String> job = createJob().then(p -> vertx.deployVerticle(provider, vd, p));
+                    EzJob<String> job = createJob(jobName).then(p -> vertx.deployVerticle(provider, vd, p));
                     if (vd.getOrder() == 0) jobList.add(job.start().future());
                     else job.join();
                 }
@@ -73,12 +72,12 @@ public class AutoDeployer implements CommandLineRunner {
                         vd.getDescriptor(), vd.getBeanQualifier());
             }
         }
-        createJob().thenSupply(() -> CompositeFuture.all(jobList)).join();
+        createJob("deploy verticles").thenSupply(() -> CompositeFuture.all(jobList)).join();
         return deployedCount;
     }
 
-    private <T> EzJob<T> createJob() {
-        return EzJob.create(vertx);
+    private <T> EzJob<T> createJob(String jobName) {
+        return EzJob.create(vertx, jobName);
     }
 
     @Override

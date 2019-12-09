@@ -1,8 +1,5 @@
 package ez.spring.vertx;
 
-import io.vertx.core.Future;
-import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,6 +9,10 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+
+import io.vertx.core.Future;
+import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
 
 @SuppressWarnings("UnusedReturnValue")
 public class EzJob<F> {
@@ -24,7 +25,8 @@ public class EzJob<F> {
     private Future<F> future;
 
     private EzJob(Vertx vertx, String id, String name, Promise<?> starter, Future<F> future) {
-        if (starter.future().isComplete()) throw new IllegalStateException("job [" + name + "] already started");
+        if (starter.future().isComplete())
+            throw new IllegalStateException("job [" + name + "] already started");
         this.vertx = vertx;
         this.id = id;
         this.name = name;
@@ -40,15 +42,11 @@ public class EzJob<F> {
         return new EzJob<>(vertx, idStr, jobName, starter, starter.future());
     }
 
-    public static <P> EzJob<P> create(Vertx vertx) {
-        return create(vertx, "");
-    }
-
     /**
      * add a step to job chain
      *
      * @param composer function receives last step result and returns next future
-     * @param <R>    next future type
+     * @param <R>      next future type
      * @return a new job object with added step
      */
     public <R> EzJob<R> thenCompose(Function<F, Future<R>> composer) {
