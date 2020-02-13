@@ -13,11 +13,11 @@ import io.vertx.core.net.NetClientOptions;
 @Configuration
 @Import(VertxConfiguration.class)
 public class NetClientConfiguration {
-    @Lazy
-    @ConfigurationProperties(VertxConfiguration.PREFIX + ".net-client")
-    @ConditionalOnMissingBean(NetClientOptions.class)
-    @Bean
-    public NetClientOptions netClientOptions() {
-        return new NetClientOptions();
-    }
+  @Lazy
+  @ConfigurationProperties(VertxConfiguration.PREFIX + ".net-client")
+  @ConditionalOnMissingBean(NetClientOptions.class)
+  @Bean
+  public NetClientOptions netClientOptions() {
+    return new NetClientOptions();
+  }
 }

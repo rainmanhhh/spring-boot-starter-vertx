@@ -14,14 +14,14 @@ import io.vertx.core.http.HttpServerOptions;
 @Configuration
 @Import({VertxConfiguration.class, ServerProperties.class})
 public class HttpServerConfiguration {
-    @Lazy
-    @ConditionalOnMissingBean(HttpServerOptions.class)
-    @ConfigurationProperties(VertxConfiguration.PREFIX + ".http-server")
-    @Bean
-    public HttpServerOptions httpServerOptions(ServerProperties serverProperties) {
-        MainHttpServerOptions options = new MainHttpServerOptions();
-        Integer port = serverProperties.getPort();
-        options.setPort(port == null || port < 0 ? MainHttpServerOptions.DEFAULT_PORT : port);
-        return options;
-    }
+  @Lazy
+  @ConditionalOnMissingBean(HttpServerOptions.class)
+  @ConfigurationProperties(VertxConfiguration.PREFIX + ".http-server")
+  @Bean
+  public HttpServerOptions httpServerOptions(ServerProperties serverProperties) {
+    MainHttpServerOptions options = new MainHttpServerOptions();
+    Integer port = serverProperties.getPort();
+    options.setPort(port == null || port < 0 ? MainHttpServerOptions.DEFAULT_PORT : port);
+    return options;
+  }
 }

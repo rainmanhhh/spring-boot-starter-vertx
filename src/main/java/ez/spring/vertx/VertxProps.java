@@ -1,55 +1,55 @@
 package ez.spring.vertx;
 
-import ez.spring.vertx.deploy.VerticleDeploy;
-import io.vertx.core.VertxOptions;
-
 import java.util.Collections;
 import java.util.List;
 
+import ez.spring.vertx.deploy.VerticleDeploy;
+import io.vertx.core.VertxOptions;
+
 public class VertxProps extends VertxOptions {
-    /**
-     * timeout of joining to the cluster.
-     * unit: {@link java.util.concurrent.TimeUnit#MILLISECONDS}.
-     * less than 0 means wait forever
-     */
-    private long clusterJoinTimeout = 30_000L;
-    /**
-     * timeout of deploy all configured verticles(in beans and config files).
-     * unit: {@link java.util.concurrent.TimeUnit#MILLISECONDS}.
-     * less than 0 means wait forever
-     */
-    private long deployTimeout = 120_000L;
-    /**
-     * verticles to deploy at vertx start(after main verticle deployed).
-     *
-     * @see VerticleDeploy
-     */
-    private List<VerticleDeploy> verticles = Collections.emptyList();
+  /**
+   * timeout of joining to the cluster.
+   * unit: {@link java.util.concurrent.TimeUnit#MILLISECONDS}.
+   * less than 0 means wait forever
+   */
+  private long clusterJoinTimeout = 30_000L;
+  /**
+   * timeout of deploy all configured verticles(in beans and config files).
+   * unit: {@link java.util.concurrent.TimeUnit#MILLISECONDS}.
+   * less than 0 means wait forever
+   */
+  private long deployTimeout = 120_000L;
+  /**
+   * verticles to deploy at vertx start(after main verticle deployed).
+   *
+   * @see VerticleDeploy
+   */
+  private List<VerticleDeploy> verticles = Collections.emptyList();
 
-    public long getClusterJoinTimeout() {
-        return clusterJoinTimeout;
-    }
+  public long getClusterJoinTimeout() {
+    return clusterJoinTimeout;
+  }
 
-    public VertxProps setClusterJoinTimeout(long clusterJoinTimeout) {
-        this.clusterJoinTimeout = clusterJoinTimeout;
-        return this;
-    }
+  public VertxProps setClusterJoinTimeout(long clusterJoinTimeout) {
+    this.clusterJoinTimeout = clusterJoinTimeout;
+    return this;
+  }
 
-    public long getDeployTimeout() {
-        return deployTimeout;
-    }
+  public long getDeployTimeout() {
+    return deployTimeout;
+  }
 
-    public VertxProps setDeployTimeout(long deployTimeout) {
-        this.deployTimeout = deployTimeout;
-        return this;
-    }
+  public VertxProps setDeployTimeout(long deployTimeout) {
+    this.deployTimeout = deployTimeout;
+    return this;
+  }
 
-    public List<VerticleDeploy> getVerticles() {
-        return verticles;
-    }
+  public List<VerticleDeploy> getVerticles() {
+    return verticles;
+  }
 
-    public VertxProps setVerticles(List<VerticleDeploy> verticles) {
-        this.verticles = verticles;
-        return this;
-    }
+  public VertxProps setVerticles(List<VerticleDeploy> verticles) {
+    this.verticles = verticles;
+    return this;
+  }
 }

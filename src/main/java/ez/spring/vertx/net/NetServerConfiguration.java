@@ -13,11 +13,11 @@ import io.vertx.core.net.NetServerOptions;
 @Configuration
 @Import(VertxConfiguration.class)
 public class NetServerConfiguration {
-    @Lazy
-    @ConditionalOnMissingBean(NetServerOptions.class)
-    @ConfigurationProperties(VertxConfiguration.PREFIX + ".net-server")
-    @Bean
-    public NetServerOptions netServerOptions() {
-        return new NetServerOptions();
-    }
+  @Lazy
+  @ConditionalOnMissingBean(NetServerOptions.class)
+  @ConfigurationProperties(VertxConfiguration.PREFIX + ".net-server")
+  @Bean
+  public NetServerOptions netServerOptions() {
+    return new NetServerOptions();
+  }
 }

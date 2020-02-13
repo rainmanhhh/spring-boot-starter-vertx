@@ -14,11 +14,11 @@ import io.vertx.core.http.HttpClientOptions;
 @Import(VertxConfiguration.class)
 @ConditionalOnMissingBean(HttpClientOptions.class)
 public class HttpClientConfiguration {
-    @Lazy
-    @ConfigurationProperties(VertxConfiguration.PREFIX + ".http-client")
-    @ConditionalOnMissingBean(HttpClientOptions.class)
-    @Bean
-    public HttpClientOptions httpClientOptions() {
-        return new HttpClientOptions();
-    }
+  @Lazy
+  @ConfigurationProperties(VertxConfiguration.PREFIX + ".http-client")
+  @ConditionalOnMissingBean(HttpClientOptions.class)
+  @Bean
+  public HttpClientOptions httpClientOptions() {
+    return new HttpClientOptions();
+  }
 }
