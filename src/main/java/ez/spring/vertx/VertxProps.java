@@ -19,6 +19,20 @@ public class VertxProps extends VertxOptions {
    * less than 0 means wait forever
    */
   private long deployTimeout = 120_000L;
+
+  public int getAutoDeployerOrder() {
+    return autoDeployerOrder;
+  }
+
+  public VertxProps setAutoDeployerOrder(int autoDeployerOrder) {
+    this.autoDeployerOrder = autoDeployerOrder;
+    return this;
+  }
+
+  /**
+   * order of {@link ez.spring.vertx.deploy.AutoDeployer} in spring application listeners
+   */
+  private int autoDeployerOrder = 0;
   /**
    * verticles to deploy at vertx start(after main verticle deployed).
    *

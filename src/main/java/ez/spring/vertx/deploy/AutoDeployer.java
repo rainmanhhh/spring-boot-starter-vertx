@@ -2,8 +2,10 @@ package ez.spring.vertx.deploy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.event.ApplicationStartedEvent;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.event.SmartApplicationListener;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import javax.annotation.Nonnull;
+
 import ez.spring.vertx.EzJob;
 import ez.spring.vertx.VertxProps;
 import ez.spring.vertx.bean.Beans;
@@ -21,7 +25,15 @@ import io.vertx.core.Future;
 import io.vertx.core.Verticle;
 import io.vertx.core.Vertx;
 
-public class AutoDeployer implements CommandLineRunner {
+/**
+ * auto run when springboot application started. <br/>
+ * 1. deploy verticles defined by {@link VerticleDeploy} beans. <br/>
+ * 2. deploy verticles defined in application.yml(with deploy=true). <br/>
+ * 3. deploy class annotated with {@link SpringBootApplication} if it's a verticle. <br/>
+ * 4. deploy verticle beans annotated with {@link AutoDeploy}. <br/>
+ * NOTICE: verticles in step 1 & 2 will be sorted by {@link VerticleDeploy#getOrder()}
+ */
+public class AutoDeployer implements SmartApplicationListener {
   private final Vertx vertx;
   private final VertxProps vertxProps;
   private Logger log = LoggerFactory.getLogger(getClass());
@@ -90,13 +102,25 @@ public class AutoDeployer implements CommandLineRunner {
   }
 
   @Override
-  public void run(String... args) {
-    log.info("auto deploy start");
-    int count = doDeploy();
-    if (count < 1) {
-      log.warn("auto deploy finish. no configured VerticleDeploy beans or @AutoDeploy annotated verticles");
-    } else {
-      log.info("auto deploy finish. {} verticle(s) deployed", count);
+  public boolean supportsEventType(@Nonnull Class<? extends ApplicationEvent> eventType) {
+    return ApplicationStartedEvent.class.isAssignableFrom(eventType);
+  }
+
+  @Override
+  public int getOrder() {
+    return vertxProps.getAutoDeployerOrder();
+  }
+
+  @Override
+  public void onApplicationEvent(@Nonnull ApplicationEvent event) {
+    if (event instanceof ApplicationStartedEvent) {
+      log.info("auto deploy start");
+      int count = doDeploy();
+      if (count < 1) {
+        log.warn("auto deploy finish. no configured VerticleDeploy beans or @AutoDeploy annotated verticles");
+      } else {
+        log.info("auto deploy finish. {} verticle(s) deployed", count);
+      }
     }
   }
 }
