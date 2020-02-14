@@ -2,6 +2,7 @@ package ez.spring.vertx.bean;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
+import org.springframework.lang.Nullable;
 
 import java.lang.annotation.Annotation;
 import java.util.Collections;
@@ -9,8 +10,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
-
-import javax.annotation.Nullable;
 
 import ez.spring.vertx.util.EzUtil;
 

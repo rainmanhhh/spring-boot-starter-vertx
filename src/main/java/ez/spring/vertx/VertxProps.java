@@ -19,16 +19,6 @@ public class VertxProps extends VertxOptions {
    * less than 0 means wait forever
    */
   private long deployTimeout = 120_000L;
-
-  public int getAutoDeployerOrder() {
-    return autoDeployerOrder;
-  }
-
-  public VertxProps setAutoDeployerOrder(int autoDeployerOrder) {
-    this.autoDeployerOrder = autoDeployerOrder;
-    return this;
-  }
-
   /**
    * order of {@link ez.spring.vertx.deploy.AutoDeployer} in spring application listeners
    */
@@ -39,6 +29,15 @@ public class VertxProps extends VertxOptions {
    * @see VerticleDeploy
    */
   private List<VerticleDeploy> verticles = Collections.emptyList();
+
+  public int getAutoDeployerOrder() {
+    return autoDeployerOrder;
+  }
+
+  public VertxProps setAutoDeployerOrder(int autoDeployerOrder) {
+    this.autoDeployerOrder = autoDeployerOrder;
+    return this;
+  }
 
   public long getClusterJoinTimeout() {
     return clusterJoinTimeout;

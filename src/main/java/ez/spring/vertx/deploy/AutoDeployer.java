@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.SmartApplicationListener;
+import org.springframework.lang.NonNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -14,8 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
-
-import javax.annotation.Nonnull;
 
 import ez.spring.vertx.EzJob;
 import ez.spring.vertx.VertxProps;
@@ -102,7 +101,7 @@ public class AutoDeployer implements SmartApplicationListener {
   }
 
   @Override
-  public boolean supportsEventType(@Nonnull Class<? extends ApplicationEvent> eventType) {
+  public boolean supportsEventType(@NonNull Class<? extends ApplicationEvent> eventType) {
     return ApplicationStartedEvent.class.isAssignableFrom(eventType);
   }
 
@@ -112,7 +111,7 @@ public class AutoDeployer implements SmartApplicationListener {
   }
 
   @Override
-  public void onApplicationEvent(@Nonnull ApplicationEvent event) {
+  public void onApplicationEvent(@NonNull ApplicationEvent event) {
     if (event instanceof ApplicationStartedEvent) {
       log.info("auto deploy start");
       int count = doDeploy();

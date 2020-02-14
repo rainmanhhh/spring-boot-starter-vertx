@@ -1,8 +1,7 @@
 package ez.spring.vertx.util;
 
 import org.springframework.context.ApplicationContext;
-
-import javax.annotation.Nullable;
+import org.springframework.lang.Nullable;
 
 import ez.spring.vertx.ActiveProfiles;
 import ez.spring.vertx.VertxConfiguration;
@@ -18,7 +17,7 @@ public class EzUtil {
    * @return `class@hashcode` of the object
    */
   public static String toString(@Nullable Object o) {
-    return o == null ? "null" : o.getClass().getCanonicalName() + "@" + Integer.toHexString(o.hashCode());
+    return o == null ? "null" : o.getClass().getCanonicalName() + "@" + System.identityHashCode(o);
   }
 
   /**

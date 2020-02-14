@@ -1,8 +1,8 @@
 package ez.spring.vertx.bean;
 
-import java.lang.annotation.Annotation;
+import org.springframework.lang.Nullable;
 
-import javax.annotation.Nullable;
+import java.lang.annotation.Annotation;
 
 public interface BeanGetterFirstStep<T> extends BeanGetterFinalStep<T> {
   /**

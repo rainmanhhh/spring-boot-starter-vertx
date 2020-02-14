@@ -1,8 +1,8 @@
 package ez.spring.vertx.deploy;
 
-import java.util.Objects;
+import org.springframework.lang.Nullable;
 
-import javax.annotation.Nullable;
+import java.util.Objects;
 
 /**
  * deployment options with verticle descriptor and beanQualifier(valid only if descriptor is a bean class name)
