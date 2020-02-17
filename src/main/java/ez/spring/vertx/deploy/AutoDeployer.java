@@ -124,7 +124,7 @@ public class AutoDeployer implements SmartApplicationListener {
       } else {
         log.info("auto deploy finish. {} verticle(s) deployed", count);
       }
-      applicationContext.publishEvent(new DeployFinishEvent(this, count));
+      applicationContext.publishEvent(new AutoDeployFinishEvent(this, count));
     }
   }
 }

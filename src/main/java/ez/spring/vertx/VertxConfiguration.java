@@ -113,7 +113,7 @@ public class VertxConfiguration {
 
   @Bean
   public AutoDeployer autoDeployer(Vertx vertx, VertxProps vertxProps) {
-    return new AutoDeployer(vertx, vertxProps);
+    return new AutoDeployer(applicationContext, vertx, vertxProps);
   }
 
   @Bean
