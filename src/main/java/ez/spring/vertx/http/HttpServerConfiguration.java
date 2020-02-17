@@ -12,8 +12,10 @@ import ez.spring.vertx.VertxConfiguration;
 @Configuration
 @Import({VertxConfiguration.class, ServerProperties.class})
 public class HttpServerConfiguration {
+  public static final String PREFIX = VertxConfiguration.PREFIX + ".http-server";
+
   @Lazy
-  @ConfigurationProperties(VertxConfiguration.PREFIX + ".http-server")
+  @ConfigurationProperties(PREFIX + ".options")
   @Bean
   public MainHttpServerOptions httpServerOptions(ServerProperties serverProperties) {
     MainHttpServerOptions options = new MainHttpServerOptions();

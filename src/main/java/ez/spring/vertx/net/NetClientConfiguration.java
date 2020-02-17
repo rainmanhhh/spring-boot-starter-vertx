@@ -12,8 +12,10 @@ import io.vertx.core.net.NetClientOptions;
 @Configuration
 @Import(VertxConfiguration.class)
 public class NetClientConfiguration {
+  public static final String PREFIX = VertxConfiguration.PREFIX + ".net-client";
+
   @Lazy
-  @ConfigurationProperties(VertxConfiguration.PREFIX + ".net-client")
+  @ConfigurationProperties(PREFIX + ".options")
   @Bean
   public NetClientOptions netClientOptions() {
     return new NetClientOptions();

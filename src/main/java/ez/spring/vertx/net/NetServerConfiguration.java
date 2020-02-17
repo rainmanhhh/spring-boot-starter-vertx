@@ -12,8 +12,10 @@ import io.vertx.core.net.NetServerOptions;
 @Configuration
 @Import(VertxConfiguration.class)
 public class NetServerConfiguration {
+  public static final String PREFIX = VertxConfiguration.PREFIX + ".net-server";
+
   @Lazy
-  @ConfigurationProperties(VertxConfiguration.PREFIX + ".net-server")
+  @ConfigurationProperties(PREFIX + ".options")
   @Bean
   public NetServerOptions netServerOptions() {
     return new NetServerOptions();
