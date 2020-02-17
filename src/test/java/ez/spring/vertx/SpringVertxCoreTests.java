@@ -23,7 +23,9 @@ public class SpringVertxCoreTests {
   @Timed(millis = 3000)
   @Test
   public void undeployMainVerticle() {
-    EzJob.create(vertx, "undeployMainVerticle").<Void>then(p -> vertx.undeploy(SpringVertxCoreTestApp.id, p)).join();
+    EzJob.create(vertx, "undeployMainVerticle").<Void>then(p ->
+      vertx.undeploy(SpringVertxCoreTestApp.id, p)
+    ).join();
   }
 
   @Timed(millis = 3000)
@@ -32,7 +34,8 @@ public class SpringVertxCoreTests {
     try {
       EzJob.create(vertx, "timeout job")
         .thenSupply(() -> Promise.promise().future())
-        .join(200);
+        .setTimeout(200)
+        .join();
     } catch (CompletionException e) {
       Assert.assertTrue(e.getCause() instanceof TimeoutException);
     }

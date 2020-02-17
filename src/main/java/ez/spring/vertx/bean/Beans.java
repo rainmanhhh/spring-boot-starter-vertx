@@ -70,7 +70,7 @@ public class Beans<T> implements BeanGetterFirstStep<T> {
 
   @SuppressWarnings("unchecked")
   @Override
-  public Supplier<Map<String, ? extends T>> getProvider(boolean includeImplicit) {
+  public Supplier<Map<String, ? extends T>> getProvider() {
     String beanName = getBeanName();
     if (beanName != null) {
       return () -> Collections.singletonMap(beanName, (T) context.getBean(beanName));
@@ -78,21 +78,7 @@ public class Beans<T> implements BeanGetterFirstStep<T> {
     Class<? extends T> beanType = getBeanType();
     if (beanType == null) throw new RuntimeException("bean not specified");
     if (qualifierClass == null) {
-      if (includeImplicit) {
-        return () -> {
-          Map<String, ? extends T> beanMap = context.getBeansOfType(beanType);
-          if (beanMap.isEmpty()) {
-            try {
-              T bean = beanType.getConstructor().newInstance();
-              return Collections.singletonMap(DEFAULT_KEY, bean);
-            } catch (Throwable e) {
-              throw new RuntimeException(e);
-            }
-          } else return beanMap;
-        };
-      } else {
-        return () -> context.getBeansOfType(beanType);
-      }
+      return () -> context.getBeansOfType(beanType);
     } else if (qualifierClass == Qualifier.class) {
       return () -> {
         Map<String, ? extends T> m1 = context.getBeansOfType(beanType);

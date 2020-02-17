@@ -22,7 +22,8 @@ public class EzJob<F> {
   private final String id;
   private final String name;
   private final Promise<?> starter;
-  private Future<F> future;
+  private Future<?> future;
+  private long timeout = -1;
 
   private EzJob(Vertx vertx, String id, String name, Promise<?> starter, Future<F> future) {
     if (starter.future().isComplete())
@@ -43,6 +44,19 @@ public class EzJob<F> {
   }
 
   /**
+   * @param timeout milliseconds
+   * @return this
+   */
+  public EzJob<F> setTimeout(long timeout) {
+    this.timeout = timeout;
+    return this;
+  }
+
+  public long getTimeout() {
+    return timeout;
+  }
+
+  /**
    * add a step to job chain
    *
    * @param composer function receives last step result and returns next future
@@ -50,7 +64,13 @@ public class EzJob<F> {
    * @return a new job object with added step
    */
   public <R> EzJob<R> thenCompose(Function<F, Future<R>> composer) {
-    return new EzJob<>(vertx, id, name, starter, future.compose(composer));
+    return setFuture(it -> it.compose(composer));
+  }
+
+  @SuppressWarnings("unchecked")
+  private <R> EzJob<R> setFuture(Function<Future<F>, Future<R>> action) {
+    future = action.apply((Future<F>) future);
+    return (EzJob<R>) this;
   }
 
   /**
@@ -61,11 +81,11 @@ public class EzJob<F> {
    * @return a new job object with added step
    */
   public <R> EzJob<R> thenMap(Function<F, R> mapper) {
-    return new EzJob<>(vertx, id, name, starter, future.map(mapper));
+    return setFuture(it -> it.map(mapper));
   }
 
   public <R> EzJob<R> thenSupply(Supplier<Future<R>> supplier) {
-    return new EzJob<>(vertx, id, name, starter, future.compose(r -> supplier.get()));
+    return setFuture(it -> it.compose(r -> supplier.get()));
   }
 
   /**
@@ -91,15 +111,20 @@ public class EzJob<F> {
     });
   }
 
+  @SuppressWarnings("unchecked")
+  private Future<F> getFuture() {
+    return ((Future<F>) future);
+  }
+
   /**
    * start job asynchronously
    *
    * @return the promise
    */
-  public Promise<F> start() {
+  private Promise<F> doJob() {
     log.info("job start [{}][{}]", id, name);
     Promise<F> p = Promise.promise();
-    future.setHandler(r -> {
+    getFuture().setHandler(r -> {
       if (!p.future().isComplete()) {
         if (r.succeeded()) {
           log.info("job success: [{}][{}]", id, name);
@@ -115,17 +140,18 @@ public class EzJob<F> {
   }
 
   /**
-   * start job with timeout
+   * start job asynchronously. <br>
+   * if timeout &gt; 0, setup a timeout handler in vertx
    *
-   * @param milliseconds wait time. less than or equals to 0 means never timeout
    * @return last step result
    */
-  public Promise<F> start(long milliseconds) {
-    Promise<F> promise = start();
-    if (milliseconds > 0) {
-      vertx.setTimer(milliseconds, id -> {
+  public Promise<F> start() {
+    Promise<F> promise = doJob();
+    long timeout = getTimeout();
+    if (timeout > 0) {
+      vertx.setTimer(timeout, id -> {
         if (!promise.future().isComplete()) {
-          String msg = "job timeout: [" + id + "][" + name + "] (" + milliseconds + " ms)";
+          String msg = "job timeout: [" + id + "][" + name + "] (" + timeout + " ms)";
           promise.fail(new TimeoutException(msg));
         }
       });
@@ -134,20 +160,8 @@ public class EzJob<F> {
   }
 
   /**
-   * start job and wait with timeout
-   *
-   * @param milliseconds wait time. less than or equals to 0 means never timeout
-   * @return last step result
-   * @throws CompletionException any step failed
-   */
-  public F join(long milliseconds) throws CompletionException {
-    return EzPromise.toCompletableFuture(
-      start(milliseconds).future()
-    ).join();
-  }
-
-  /**
-   * start job and wait without timeout
+   * start job and wait synchronously. <br>
+   * if timeout &gt; 0, setup a timeout handler in vertx
    *
    * @return last step result
    * @throws CompletionException any step failed

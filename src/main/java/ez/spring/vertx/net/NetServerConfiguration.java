@@ -1,6 +1,5 @@
 package ez.spring.vertx.net;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,7 +13,6 @@ import io.vertx.core.net.NetServerOptions;
 @Import(VertxConfiguration.class)
 public class NetServerConfiguration {
   @Lazy
-  @ConditionalOnMissingBean(NetServerOptions.class)
   @ConfigurationProperties(VertxConfiguration.PREFIX + ".net-server")
   @Bean
   public NetServerOptions netServerOptions() {

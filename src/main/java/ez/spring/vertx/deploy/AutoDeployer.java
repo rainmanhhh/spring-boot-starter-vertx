@@ -25,12 +25,12 @@ import io.vertx.core.Verticle;
 import io.vertx.core.Vertx;
 
 /**
- * auto run when springboot application started. <br/>
- * 1. deploy verticles defined by {@link VerticleDeploy} beans. <br/>
- * 2. deploy verticles defined in application.yml(with deploy=true). <br/>
- * 3. deploy class annotated with {@link SpringBootApplication} if it's a verticle. <br/>
- * 4. deploy verticle beans annotated with {@link AutoDeploy}. <br/>
- * NOTICE: verticles in step 1 & 2 will be sorted by {@link VerticleDeploy#getOrder()}
+ * auto run when springboot application started. <br>
+ * 1. deploy verticles defined by {@link DeployProps} beans. <br>
+ * 2. deploy verticles defined in application.yml(with deploy=true). <br>
+ * 3. deploy class annotated with {@link SpringBootApplication} if it's a verticle. <br>
+ * 4. deploy verticle beans annotated with {@link AutoDeploy}. <br>
+ * NOTICE: verticles in step 1 &amp; 2 will be sorted by {@link DeployProps#getOrder()}
  */
 public class AutoDeployer implements SmartApplicationListener {
   private final Vertx vertx;
@@ -45,12 +45,12 @@ public class AutoDeployer implements SmartApplicationListener {
   private int doDeploy() {
     // merge VerticleDeploy beans & VerticleDeploy configList(sort by order)
     // 1.VerticleDeploy configList
-    Collection<? extends VerticleDeploy> beans = Beans.withType(VerticleDeploy.class).getBeans();
-    List<VerticleDeploy> configList = vertxProps.getVerticles();
-    ArrayList<VerticleDeploy> allDeploys = new ArrayList<>();
+    Collection<? extends DeployProps> beans = Beans.withType(DeployProps.class).getBeans();
+    List<DeployProps> configList = vertxProps.getVerticles();
+    ArrayList<DeployProps> allDeploys = new ArrayList<>();
     allDeploys.addAll(beans);
     allDeploys.addAll(configList);
-    allDeploys.sort(Comparator.comparingInt((DeploymentOptionsEx::getOrder)));
+    allDeploys.sort(Comparator.comparingInt((DeployProps::getOrder)));
     // 2.annotated Verticle beans todo: read @Ordered value
     // 2.1.SpringBootApplication(if it's a Verticle)
     Map<String, ? extends Verticle> map1 = Beans.withType(Verticle.class).withQualifier(SpringBootApplication.class).getBeanMap();
@@ -60,13 +60,13 @@ public class AutoDeployer implements SmartApplicationListener {
     Map<String, Verticle> m = new HashMap<>();
     m.putAll(map1);
     m.putAll(map2);
-    m.forEach((beanName, verticle) -> allDeploys.add(new VerticleDeploy().setDescriptor(beanName)));
+    m.forEach((beanName, verticle) -> allDeploys.add(new DeployProps().setEnabled(true).setDescriptor(beanName)));
     // deploy verticles in the list one by one
     int deployedCount = 0;
     // verticles with order=0
     @SuppressWarnings("rawtypes")
     List<Future> jobList = new ArrayList<>();
-    for (VerticleDeploy vd : allDeploys) {
+    for (DeployProps vd : allDeploys) {
       if (vd.isEnabled()) {
         String descriptor = vd.getDescriptor();
         String jobName = "deploy verticle " + descriptor;

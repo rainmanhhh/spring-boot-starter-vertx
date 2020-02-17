@@ -3,7 +3,7 @@ package ez.spring.vertx;
 import java.util.Collections;
 import java.util.List;
 
-import ez.spring.vertx.deploy.VerticleDeploy;
+import ez.spring.vertx.deploy.DeployProps;
 import io.vertx.core.VertxOptions;
 
 public class VertxProps extends VertxOptions {
@@ -26,9 +26,9 @@ public class VertxProps extends VertxOptions {
   /**
    * verticles to deploy at vertx start(after main verticle deployed).
    *
-   * @see VerticleDeploy
+   * @see DeployProps
    */
-  private List<VerticleDeploy> verticles = Collections.emptyList();
+  private List<DeployProps> verticles = Collections.emptyList();
 
   public int getAutoDeployerOrder() {
     return autoDeployerOrder;
@@ -57,11 +57,11 @@ public class VertxProps extends VertxOptions {
     return this;
   }
 
-  public List<VerticleDeploy> getVerticles() {
+  public List<DeployProps> getVerticles() {
     return verticles;
   }
 
-  public VertxProps setVerticles(List<VerticleDeploy> verticles) {
+  public VertxProps setVerticles(List<DeployProps> verticles) {
     this.verticles = verticles;
     return this;
   }

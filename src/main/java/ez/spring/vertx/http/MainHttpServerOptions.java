@@ -3,11 +3,10 @@ package ez.spring.vertx.http;
 import io.vertx.core.http.HttpServerOptions;
 
 public class MainHttpServerOptions extends HttpServerOptions {
-  public static final int DEFAULT_PORT = 8999;
   /**
-   * use spring ServerProperties.port as default value(if it's null or less than 0, fallback to {@link #DEFAULT_PORT})
+   * use ${server.port} if it equals or greater than 0
    */
-  private int port;
+  private int port = 8999;
 
   @Override
   public int getPort() {

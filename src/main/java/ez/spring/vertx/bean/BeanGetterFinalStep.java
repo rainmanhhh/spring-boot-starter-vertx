@@ -5,41 +5,38 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 public interface BeanGetterFinalStep<T> {
-  Supplier<Map<String, ? extends T>> getProvider(boolean includeImplicit);
+  /**
+   * @return the provider of bean map
+   */
+  Supplier<Map<String, ? extends T>> getProvider();
 
-  default Supplier<Map<String, ? extends T>> getProvider() {
-    return getProvider(false);
-  }
-
-  default Supplier<T> getFirstProvider(boolean includeImplicit) {
-    return () -> getProvider(includeImplicit).get().values().iterator().next();
-  }
-
+  /**
+   * @return the provider to get first bean which match conditions
+   */
   default Supplier<T> getFirstProvider() {
-    return getFirstProvider(false);
+    return () -> getProvider().get().values().iterator().next();
   }
 
-  default Map<String, ? extends T> getBeanMap(boolean includeImplicit) {
-    return getProvider(includeImplicit).get();
-  }
-
+  /**
+   * use the provider to get bean map
+   *
+   * @return bean map
+   */
   default Map<String, ? extends T> getBeanMap() {
-    return getBeanMap(false);
+    return getProvider().get();
   }
 
-  default T getBean(boolean includeImplicit) {
-    return getBeanMap(includeImplicit).values().iterator().next();
-  }
-
+  /**
+   * @return the first bean in bean map
+   */
   default T getBean() {
-    return getBean(false);
+    return getBeanMap().values().iterator().next();
   }
 
-  default Collection<? extends T> getBeans(boolean includeImplicit) {
-    return getBeanMap(includeImplicit).values();
-  }
-
+  /**
+   * @return value collection of bean map
+   */
   default Collection<? extends T> getBeans() {
-    return getBeans(false);
+    return getBeanMap().values();
   }
 }
