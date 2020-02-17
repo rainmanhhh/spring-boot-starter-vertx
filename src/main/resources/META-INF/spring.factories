@@ -2,6 +2,4 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
   ez.spring.vertx.VertxConfiguration,\
   ez.spring.vertx.http.HttpServerConfiguration,\
-  ez.spring.vertx.http.HttpClientConfiguration,\
-  ez.spring.vertx.net.NetServerConfiguration,\
-  ez.spring.vertx.net.NetClientConfiguration
+  ez.spring.vertx.net.NetServerConfiguration

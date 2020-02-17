@@ -47,6 +47,21 @@ public class Beans<T> implements BeanGetterFirstStep<T> {
     return new Beans<>(EzUtil.getApplicationContext(), beanType);
   }
 
+  @Override
+  public String getDescriptor() {
+    return descriptor;
+  }
+
+  @Override
+  public String getQualifierValue() {
+    return qualifierValue;
+  }
+
+  @Override
+  public Class<? extends Annotation> getQualifierClass() {
+    return qualifierClass;
+  }
+
   @SuppressWarnings("unchecked")
   @Override
   public BeanGetterFinalStep<T> withQualifier(@Nullable String qualifierValue) {
@@ -124,7 +139,8 @@ public class Beans<T> implements BeanGetterFirstStep<T> {
    * @return {@link #beanType} if not null; otherwise class whose name is {@link #descriptor}
    */
   @Nullable
-  private Class<? extends T> getBeanType() {
+  @Override
+  public Class<? extends T> getBeanType() {
     return getType(beanType, descriptor);
   }
 }
