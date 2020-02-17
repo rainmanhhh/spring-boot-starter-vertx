@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.SmartApplicationListener;
 import org.springframework.lang.NonNull;
@@ -33,11 +34,13 @@ import io.vertx.core.Vertx;
  * NOTICE: verticles in step 1 &amp; 2 will be sorted by {@link DeployProps#getOrder()}
  */
 public class AutoDeployer implements SmartApplicationListener {
+  private final ApplicationContext applicationContext;
   private final Vertx vertx;
   private final VertxProps vertxProps;
   private Logger log = LoggerFactory.getLogger(getClass());
 
-  public AutoDeployer(Vertx vertx, VertxProps vertxProps) {
+  public AutoDeployer(ApplicationContext applicationContext, Vertx vertx, VertxProps vertxProps) {
+    this.applicationContext = applicationContext;
     this.vertx = vertx;
     this.vertxProps = vertxProps;
   }
@@ -60,7 +63,9 @@ public class AutoDeployer implements SmartApplicationListener {
     Map<String, Verticle> m = new HashMap<>();
     m.putAll(map1);
     m.putAll(map2);
-    m.forEach((beanName, verticle) -> allDeploys.add(new DeployProps().setEnabled(true).setDescriptor(beanName)));
+    m.forEach((beanName, verticle) -> allDeploys.add(
+      new DeployProps().setEnabled(true).setDescriptor(beanName)
+    ));
     // deploy verticles in the list one by one
     int deployedCount = 0;
     // verticles with order=0
@@ -70,20 +75,19 @@ public class AutoDeployer implements SmartApplicationListener {
       if (vd.isEnabled()) {
         String descriptor = vd.getDescriptor();
         String jobName = "deploy verticle " + descriptor;
+        final EzJob<String> job;
         if (descriptor.contains(":")) { // verticle descriptor
-          EzJob<String> job = createJob(jobName).then(p -> vertx.deployVerticle(descriptor, vd, p));
-          if (vd.getOrder() == 0) jobList.add(job.start().future());
-          else job.join();
+          job = createJob(jobName).then(p -> vertx.deployVerticle(descriptor, vd, p));
         } else { // bean name or class name
           Supplier<Verticle> provider = Beans.<Verticle>withDescriptor(
             descriptor
           ).withQualifier(
             vd.getBeanQualifier()
           ).getFirstProvider();
-          EzJob<String> job = createJob(jobName).then(p -> vertx.deployVerticle(provider, vd, p));
-          if (vd.getOrder() == 0) jobList.add(job.start().future());
-          else job.join();
+          job = createJob(jobName).then(p -> vertx.deployVerticle(provider, vd, p));
         }
+        if (vd.getOrder() == 0) jobList.add(job.start().future()); // order is 0. deploy async
+        else job.join();
         deployedCount++;
         log.debug("deployed verticle, descriptor: {}, qualifier: {}",
           vd.getDescriptor(), vd.getBeanQualifier());
@@ -116,10 +120,11 @@ public class AutoDeployer implements SmartApplicationListener {
       log.info("auto deploy start");
       int count = doDeploy();
       if (count < 1) {
-        log.warn("auto deploy finish. no configured VerticleDeploy beans or @AutoDeploy annotated verticles");
+        log.warn("auto deploy finish. no auto-deploy beans found");
       } else {
         log.info("auto deploy finish. {} verticle(s) deployed", count);
       }
+      applicationContext.publishEvent(new DeployFinishEvent(this, count));
     }
   }
 }
