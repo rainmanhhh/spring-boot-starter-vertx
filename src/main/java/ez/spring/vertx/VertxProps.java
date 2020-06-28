@@ -8,6 +8,10 @@ import io.vertx.core.VertxOptions;
 
 public class VertxProps extends VertxOptions {
   /**
+   * whether to join a cluster
+   */
+  private boolean clustered = false;
+  /**
    * timeout of joining to the cluster.
    * unit: {@link java.util.concurrent.TimeUnit#MILLISECONDS}.
    * less than 0 means wait forever
@@ -29,6 +33,15 @@ public class VertxProps extends VertxOptions {
    * @see DeployProps
    */
   private List<DeployProps> verticles = Collections.emptyList();
+
+  public boolean isClustered() {
+    return clustered;
+  }
+
+  public VertxProps setClustered(boolean clustered) {
+    this.clustered = clustered;
+    return this;
+  }
 
   public int getAutoDeployerOrder() {
     return autoDeployerOrder;

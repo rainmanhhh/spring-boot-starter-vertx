@@ -27,10 +27,14 @@ public class EzPromise {
    */
   public static <T> CompletableFuture<T> toCompletableFuture(Future<T> future) throws CompletionException {
     CompletableFuture<T> completableFuture = new CompletableFuture<>();
-    future.setHandler(event -> {
+    future.onComplete(event -> {
       if (event.succeeded()) completableFuture.complete(event.result());
       else completableFuture.completeExceptionally(event.cause());
     });
     return completableFuture;
+  }
+
+  public static <T> T join(Future<T> future) {
+    return toCompletableFuture(future).join();
   }
 }

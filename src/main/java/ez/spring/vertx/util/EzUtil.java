@@ -1,6 +1,7 @@
 package ez.spring.vertx.util;
 
 import org.springframework.context.ApplicationContext;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 import ez.spring.vertx.ActiveProfiles;
@@ -33,16 +34,19 @@ public class EzUtil {
    * @return current thread context owner([Vertx]
    * @throws IllegalStateException if current thread is not a vertx thread
    */
+  @NonNull
   public static Vertx vertx() {
     Vertx vertx = vertxOrNull();
     if (vertx == null) throw new IllegalStateException("current thread is not a vertx thread");
     return vertx;
   }
 
+  @NonNull
   public static ApplicationContext getApplicationContext() {
     return VertxConfiguration.getApplicationContext();
   }
 
+  @NonNull
   public static ActiveProfiles getActiveProfiles() {
     return VertxConfiguration.getActiveProfiles();
   }

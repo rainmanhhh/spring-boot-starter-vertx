@@ -2,6 +2,7 @@ package ez.spring.vertx.bean;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 import java.lang.annotation.Annotation;
@@ -15,7 +16,7 @@ import ez.spring.vertx.util.EzUtil;
 
 @SuppressWarnings("WeakerAccess")
 public class Beans<T> implements BeanGetterFirstStep<T> {
-  public static final String DEFAULT_KEY = Beans.class.getCanonicalName() + ".DEFAULT_BEAN";
+  public static final String SCOPE_THREAD = "thread";
   private final ApplicationContext context;
   private final String descriptor;
   private final Class<T> beanType;
@@ -23,8 +24,8 @@ public class Beans<T> implements BeanGetterFirstStep<T> {
   private Class<? extends Annotation> qualifierClass = null;
 
   private Beans(ApplicationContext context, String descriptor) {
-    this.context = Objects.requireNonNull(context);
-    this.descriptor = Objects.requireNonNull(descriptor);
+    this.context = context;
+    this.descriptor = descriptor;
     beanType = null;
   }
 
@@ -39,12 +40,12 @@ public class Beans<T> implements BeanGetterFirstStep<T> {
    * @param <T>        bean type
    * @return BeanGetterFirstStep
    */
-  public static <T> BeanGetterFirstStep<T> withDescriptor(String descriptor) {
-    return new Beans<>(EzUtil.getApplicationContext(), descriptor);
+  public static <T> BeanGetterFirstStep<T> withDescriptor(@NonNull String descriptor) {
+    return new Beans<>(EzUtil.getApplicationContext(), Objects.requireNonNull(descriptor));
   }
 
-  public static <T> BeanGetterFirstStep<T> withType(Class<T> beanType) {
-    return new Beans<>(EzUtil.getApplicationContext(), beanType);
+  public static <T> BeanGetterFirstStep<T> withType(@NonNull Class<T> beanType) {
+    return new Beans<>(EzUtil.getApplicationContext(), Objects.requireNonNull(beanType));
   }
 
   @Override

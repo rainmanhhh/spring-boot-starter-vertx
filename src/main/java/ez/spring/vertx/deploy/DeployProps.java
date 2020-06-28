@@ -1,25 +1,18 @@
 package ez.spring.vertx.deploy;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
 
 import java.util.Objects;
 
-import ez.spring.vertx.EzJob;
-import ez.spring.vertx.util.EzUtil;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
-import io.vertx.core.Promise;
-import io.vertx.core.Verticle;
 import io.vertx.core.Vertx;
 
 /**
  * deployment options with verticle descriptor and beanQualifier(valid only if descriptor is a bean class name) and order
  */
 public class DeployProps extends DeploymentOptions {
-  private static final Logger log = LoggerFactory.getLogger(DeployProps.class);
-  private boolean enabled = false;
+  private boolean enabled = true;
   private int order = 0;
   /**
    * timeout of deploying verticle.
@@ -50,21 +43,6 @@ public class DeployProps extends DeploymentOptions {
     beanQualifier = other.getBeanQualifier();
   }
 
-  public Future<String> deploy(Vertx vertx, Verticle verticle) {
-    return createJob(vertx, verticle).start().future();
-  }
-
-  public Future<String> deploy(Vertx vertx, String descriptor) {
-    return createJob(vertx, descriptor).start().future();
-  }
-
-  public String deploySync(Vertx vertx, Verticle verticle) {
-    return createJob(vertx, verticle).join();
-  }
-
-  public String deploySync(Vertx vertx, String descriptor) {
-    return createJob(vertx, descriptor).join();
-  }
 
   public boolean isEnabled() {
     return enabled;
@@ -112,22 +90,7 @@ public class DeployProps extends DeploymentOptions {
     return this;
   }
 
-  private EzJob<String> createJob(Vertx vertx, String verticle) {
-    return EzJob.create(vertx, "deploy verticle " + verticle)
-      .then((Object o, Promise<String> p) -> vertx.deployVerticle(verticle, this, p))
-      .thenMap(deploymentId -> {
-        log.info("deploy verticle success: [{}], id={}", verticle, deploymentId);
-        return deploymentId;
-      }).setTimeout(getTimeout());
-  }
-
-  private EzJob<String> createJob(Vertx vertx, Verticle verticle) {
-    String verticleStr = EzUtil.toString(Objects.requireNonNull(verticle));
-    return EzJob.create(vertx, "deploy verticle " + verticleStr)
-      .then((Object o, Promise<String> p) -> vertx.deployVerticle(verticle, this, p))
-      .thenMap(deploymentId -> {
-        log.info("deploy verticle success: [{}], id={}", verticleStr, deploymentId);
-        return deploymentId;
-      }).setTimeout(getTimeout());
+  public Future<String> deploy(Vertx vertx) {
+    return DeployHelper.deploy(vertx, this);
   }
 }

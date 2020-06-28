@@ -3,19 +3,25 @@ package ez.spring.vertx;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.CustomScopeConfigurer;
+import org.springframework.beans.factory.config.Scope;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.support.SimpleThreadScope;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 import java.util.Arrays;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import ez.spring.vertx.bean.Beans;
 import ez.spring.vertx.deploy.AutoDeployer;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
@@ -43,12 +49,14 @@ public class VertxConfiguration {
     VertxConfiguration.applicationContext = applicationContext;
   }
 
+  @NonNull
   public static ApplicationContext getApplicationContext() {
     ApplicationContext value = applicationContext;
     if (value == null) throw new RuntimeException("applicationContext not set yet");
     return value;
   }
 
+  @NonNull
   public static ActiveProfiles getActiveProfiles() {
     ActiveProfiles value = activeProfiles;
     if (value == null) throw new RuntimeException("activeProfiles not set yet");
@@ -58,7 +66,7 @@ public class VertxConfiguration {
   @Bean
   public Vertx vertx(VertxProps vertxProps) throws ExecutionException, InterruptedException, TimeoutException {
     final Vertx vertx;
-    if (vertxProps.getEventBusOptions().isClustered()) {
+    if (vertxProps.isClustered()) {
       CompletableFuture<Vertx> future = new CompletableFuture<>();
       log.info("waiting vertx join to cluster...");
       Vertx.clusteredVertx(vertxProps, EzPromise.fromCompletableFuture(future));

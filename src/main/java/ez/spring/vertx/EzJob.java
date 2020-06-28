@@ -3,6 +3,8 @@ package ez.spring.vertx;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
@@ -23,6 +25,7 @@ public class EzJob<F> {
   private final String name;
   private final Promise<?> starter;
   private Future<?> future;
+  private List<Future<?>> waitList = new ArrayList<>(1);
   private long timeout = -1;
 
   private EzJob(Vertx vertx, String id, String name, Promise<?> starter, Future<F> future) {
@@ -35,16 +38,35 @@ public class EzJob<F> {
     this.future = future;
   }
 
-  public static <P> EzJob<P> create(Vertx vertx, String jobName) {
+  /**
+   * create a job with timeout
+   *
+   * @param vertx   {@link Vertx} instance
+   * @param jobName name of the job
+   * @param timeout job timeout(valid only if value greater than 0)
+   * @return job instance
+   */
+  public static EzJob<Void> create(Vertx vertx, String jobName, long timeout) {
     long id = tlId.get() + 1;
     tlId.set(id);
-    Promise<P> starter = Promise.promise();
+    Promise<Void> starter = Promise.promise();
     String idStr = Thread.currentThread().getId() + "-" + id;
     return new EzJob<>(vertx, idStr, jobName, starter, starter.future());
   }
 
   /**
-   * @param timeout milliseconds
+   * create a job without timeout(can be set later)
+   *
+   * @param vertx   {@link Vertx} instance
+   * @param jobName name of the job
+   * @return job instance
+   */
+  public static EzJob<Void> create(Vertx vertx, String jobName) {
+    return create(vertx, jobName, 0);
+  }
+
+  /**
+   * @param timeout unit: milliseconds. valid only if value &gt; 0
    * @return this
    */
   public EzJob<F> setTimeout(long timeout) {
@@ -67,9 +89,17 @@ public class EzJob<F> {
     return setFuture(it -> it.compose(composer));
   }
 
+//  public <R> EzJob<R> thenAsync()
+
   @SuppressWarnings("unchecked")
   private <R> EzJob<R> setFuture(Function<Future<F>, Future<R>> action) {
     future = action.apply((Future<F>) future);
+    return (EzJob<R>) this;
+  }
+
+  @SuppressWarnings("unchecked")
+  private <R> EzJob<R> setFuture(Supplier<Future<R>> supplier) {
+    future = supplier.get();
     return (EzJob<R>) this;
   }
 
@@ -84,6 +114,13 @@ public class EzJob<F> {
     return setFuture(it -> it.map(mapper));
   }
 
+  public EzJob<Void> thenConsume(Consumer<F> consumer) {
+    return setFuture(it -> it.compose(r -> {
+      consumer.accept(r);
+      return Future.succeededFuture();
+    }));
+  }
+
   public <R> EzJob<R> thenSupply(Supplier<Future<R>> supplier) {
     return setFuture(it -> it.compose(r -> supplier.get()));
   }
@@ -93,7 +130,7 @@ public class EzJob<F> {
    *
    * @param action function receives last step result and promise(starter) for next step
    * @param <T>    next step promise(starter) type. eg: in `Vertx.clusteredVertx(options, p)` T is Vertx
-   * @return a new job object with added step
+   * @return job chain
    */
   public <T> EzJob<T> then(BiConsumer<F, Promise<T>> action) {
     return thenCompose((F f) -> {
@@ -103,11 +140,23 @@ public class EzJob<F> {
     });
   }
 
+  /**
+   * @param action function determine when to start next step and do not care about last step result
+   * @param <T>    next step input param type
+   * @return job chain
+   */
   public <T> EzJob<T> then(Consumer<Promise<T>> action) {
-    return thenCompose((F f) -> {
+    return setFuture(() -> {
       Promise<T> p = Promise.promise();
       action.accept(p);
       return p.future();
+    });
+  }
+
+  public EzJob<F> then(Promise<F> promise) {
+    return thenCompose((F f) -> {
+      promise.complete(f);
+      return promise.future();
     });
   }
 
@@ -124,7 +173,7 @@ public class EzJob<F> {
   private Promise<F> doJob() {
     log.info("job start [{}][{}]", id, name);
     Promise<F> p = Promise.promise();
-    getFuture().setHandler(r -> {
+    getFuture().onComplete(r -> {
       if (!p.future().isComplete()) {
         if (r.succeeded()) {
           log.info("job success: [{}][{}]", id, name);
@@ -157,6 +206,16 @@ public class EzJob<F> {
       });
     }
     return promise;
+  }
+
+  public Promise<Void> start(Promise<Void> finishHandler) {
+    start().future().onComplete(it -> {
+      if (!finishHandler.future().isComplete()) {
+        if (it.succeeded()) finishHandler.complete();
+        else finishHandler.fail(it.cause());
+      }
+    });
+    return finishHandler;
   }
 
   /**

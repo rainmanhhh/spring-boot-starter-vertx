@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import ez.spring.vertx.EzJob;
+import ez.spring.vertx.EzPromise;
 import ez.spring.vertx.VertxProps;
 import ez.spring.vertx.bean.Beans;
 import io.vertx.core.CompositeFuture;
@@ -68,26 +69,16 @@ public class AutoDeployer implements SmartApplicationListener {
     ));
     // deploy verticles in the list one by one
     int deployedCount = 0;
-    // verticles with order=0
+
+    EzJob<?> job = EzJob.create(vertx, "auto deploy verticles");
+
     @SuppressWarnings("rawtypes")
-    List<Future> jobList = new ArrayList<>();
+    List<Future> futureList = new ArrayList<>();
     for (DeployProps vd : allDeploys) {
       if (vd.isEnabled()) {
-        String descriptor = vd.getDescriptor();
-        String jobName = "deploy verticle " + descriptor;
-        final EzJob<String> job;
-        if (descriptor.contains(":")) { // verticle descriptor
-          job = createJob(jobName).then(p -> vertx.deployVerticle(descriptor, vd, p));
-        } else { // bean name or class name
-          Supplier<Verticle> provider = Beans.<Verticle>withDescriptor(
-            descriptor
-          ).withQualifier(
-            vd.getBeanQualifier()
-          ).getFirstProvider();
-          job = createJob(jobName).then(p -> vertx.deployVerticle(provider, vd, p));
-        }
-        if (vd.getOrder() == 0) jobList.add(job.start().future()); // order is 0. deploy async
-        else job.join();
+        Future<String> future = vd.deploy(vertx);
+        if (vd.getOrder() == 0) futureList.add(future); // order is 0. deploy async
+        else EzPromise.join(future);
         deployedCount++;
         log.debug("deployed verticle, descriptor: {}, qualifier: {}",
           vd.getDescriptor(), vd.getBeanQualifier());
@@ -96,12 +87,8 @@ public class AutoDeployer implements SmartApplicationListener {
           vd.getDescriptor(), vd.getBeanQualifier());
       }
     }
-    createJob("deploy verticles").thenSupply(() -> CompositeFuture.all(jobList)).join();
+    EzJob.create(vertx, "auto deploy verticles").thenSupply(() -> CompositeFuture.all(futureList)).join();
     return deployedCount;
-  }
-
-  private <T> EzJob<T> createJob(String jobName) {
-    return EzJob.create(vertx, jobName);
   }
 
   @Override
